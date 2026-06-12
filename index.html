@@ -367,7 +367,7 @@
 
 <script>
 // ==================== CONFIGURACIÓN ====================
-const API_URL = "https://script.google.com/macros/s/AKfycbxGI22y_uCLyXLAH36OaQkCuoP2aTcf4SBIFE1JXd1HlVXxc0AMRy-fpdEvUA-hhpL-sA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx5oiJIj3uiRTsdoyFqbxQ1-WIQ0K-5WuQjOg2vkZK546z_Q3VTCKIhHEBhcL8OoqNTkA/exec";
 const SITIO_URL = "https://tinyurl.com/2ujusm83";
 const VALOR_JUGADA = 5000;
 
@@ -520,10 +520,7 @@ document.getElementById('btnVerificarAdmin').onclick = async () => {
         return; 
     }
     
-    console.log("Verificando contraseña:", password);
-    
     try {
-        // Llamar a la API para verificar/crear contraseña
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -534,7 +531,7 @@ document.getElementById('btnVerificarAdmin').onclick = async () => {
         });
         
         const data = await response.json();
-        console.log("Respuesta de la API:", data);
+        console.log("Respuesta API:", data);
         
         if (data.success) {
             esAdmin = true;
@@ -547,10 +544,10 @@ document.getElementById('btnVerificarAdmin').onclick = async () => {
             }
             cargarPanelAdmin();
         } else {
-            document.getElementById('errorLoginAdmin').innerHTML = "❌ Contraseña incorrecta";
+            document.getElementById('errorLoginAdmin').innerHTML = "❌ " + (data.error || "Contraseña incorrecta");
         }
     } catch (error) {
-        console.error("Error al verificar admin:", error);
+        console.error("Error:", error);
         document.getElementById('errorLoginAdmin').innerHTML = "❌ Error de conexión con la API";
     }
 };
