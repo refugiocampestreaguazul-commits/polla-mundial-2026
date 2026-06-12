@@ -368,6 +368,15 @@
 <script>
 // ==================== CONFIGURACIÓN ====================
 const API_URL = "https://script.google.com/macros/s/AKfycbx5oiJIj3uiRTsdoyFqbxQ1-WIQ0K-5WuQjOg2vkZK546z_Q3VTCKIhHEBhcL8OoqNTkA/exec";
+// Prueba de conexión al cargar la página
+fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: "test", params: {} })
+})
+.then(r => r.json())
+.then(data => console.log("✅ API conectada:", data))
+.catch(err => console.error("❌ Error API:", err));
 const SITIO_URL = "https://tinyurl.com/2ujusm83";
 const VALOR_JUGADA = 5000;
 
