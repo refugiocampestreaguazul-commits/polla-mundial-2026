@@ -287,6 +287,7 @@
             </div>
             <button id="btnLiquidarPartido" class="btn-liquidar">🔴 LIQUIDAR PARTIDO</button>
             <select id="liquidarPartidoSelect" style="width:100%; margin-top:10px; padding:8px; border-radius:30px; background:#1e3328; color:white;"><option value="">-- Seleccione --</option></select>
+            <button id="btnCerrarSesionAdmin" class="btn-primary" style="background:#C8102E; margin-top:15px; width:100%;">🚪 CERRAR SESIÓN ADMIN</button>
         </div>
     </div>
 
@@ -351,10 +352,11 @@ let miWhatsapp = localStorage.getItem(`whatsapp_${jugadorId}`) || '';
 let miCuenta = localStorage.getItem(`cuenta_${jugadorId}`) || '';
 let misJugadas = [];
 
-// ==================== API LOCAL (SIN CORS) ====================
+// ==================== API LOCAL ====================
 async function callAPI(action, params = {}) {
     let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
     let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let pozo = localStorage.getItem('pozo_total_app') || 0;
     
     if (action === "obtenerJugador") {
         let jugador = jugadores.find(j => j.id === params.id);
@@ -369,6 +371,7 @@ async function callAPI(action, params = {}) {
     if (action === "actualizarSaldo") {
         let jugador = jugadores.find(j => j.id === params.id);
         if (jugador) { jugador.saldo = params.monto; localStorage.setItem('jugadores_app', JSON.stringify(jugadores)); }
+        if (params.pozo) { pozoTotal = params.monto; localStorage.setItem('pozo_total_app', pozoTotal); }
         return { success: true };
     }
     
@@ -399,9 +402,14 @@ async function callAPI(action, params = {}) {
         const solicitud = solicitudes.find(s => s.id === params.solicitudId);
         if (solicitud) {
             solicitud.estado = 'aprobada';
-            let jugador = jugadores.find(j => j.id === solicitud.jugadorId);
-            if (jugador) { jugador.saldo = (jugador.saldo || 0) + solicitud.monto; localStorage.setItem('jugadores_app', JSON.stringify(jugadores)); }
             localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+            let jugador = jugadores.find(j => j.id === solicitud.jugadorId);
+            if (jugador) {
+                jugador.saldo = (jugador.saldo || 0) + solicitud.monto;
+                localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+                pozoTotal += solicitud.monto;
+                localStorage.setItem('pozo_total_app', pozoTotal);
+            }
         }
         return { success: true };
     }
@@ -684,6 +692,17 @@ document.getElementById('btnVerificarAdmin').onclick=async()=>{
     }else document.getElementById('errorLoginAdmin').innerText="❌ Contraseña incorrecta";
 };
 
+// Cerrar sesión admin
+document.getElementById('btnCerrarSesionAdmin').onclick = () => {
+    esAdmin = false;
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab-btn[data-tab="jugada"]').classList.add('active');
+    document.getElementById('tab-jugada').classList.add('active');
+    alert("✅ Sesión de administrador cerrada");
+};
+
 // ==================== DATOS ====================
 async function cargarDatosJugador(){
     let r=await callAPI("obtenerJugador",{id:jugadorId});
@@ -764,12 +783,39 @@ async function agregarSolicitud(monto,metodo,comprobante){
     if(r.success) alert("✅ Solicitud enviada. Espere aprobación.");
 }
 
-window.aprobarSolicitud=async function(id,monto,jid){
-    if(!esAdmin) return;
-    await callAPI("aprobarSolicitud",{solicitudId:id});
-    alert(`✅ Recarga aprobada: $${monto.toLocaleString()}`);
-    await cargarDatosAdmin();
-    if(jid===jugadorId) await cargarDatosJugador();
+window.aprobarSolicitud = async function(id, monto, jid) {
+    if (!esAdmin) return;
+    
+    // Actualizar en localStorage
+    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    const solicitud = solicitudes.find(s => s.id === id);
+    if (solicitud) {
+        solicitud.estado = 'aprobada';
+        localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+        
+        // Actualizar saldo del jugador
+        const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+        let jugador = jugadores.find(j => j.id === jid);
+        if (jugador) {
+            jugador.saldo = (jugador.saldo || 0) + monto;
+            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+            
+            // Actualizar pozo total
+            pozoTotal += monto;
+            localStorage.setItem('pozo_total_app', pozoTotal);
+            
+            // Si es el jugador actual, actualizar variable miSaldo
+            if (jid === jugadorId) {
+                miSaldo = jugador.saldo;
+                actualizarDisplay();
+                await cargarDatosJugador();
+            }
+        }
+        
+        alert(`✅ Recarga aprobada: $${monto.toLocaleString()}`);
+        await cargarDatosAdmin();
+        await cargarDatosJugador();
+    }
 };
 
 async function activarSaldoManual(jid,monto){
