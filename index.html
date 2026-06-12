@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             background: linear-gradient(135deg, #0a2f1f 0%, #051f12 100%);
             color: #ffffff;
             padding: 20px;
@@ -173,6 +173,7 @@
         .aviso-partido.advertencia { color: #ff6b6b; border: 1px solid #ff6b6b; }
         .aviso-partido.normal { color: #cce6d4; border: 1px solid #FFCD00; }
         .aviso-partido.exito { color: #90EE90; border: 1px solid #90EE90; }
+        .aviso-partido.cerrado { color: #ffa500; border: 1px solid #ffa500; }
     </style>
 </head>
 <body>
@@ -297,7 +298,7 @@
         <p>⚖️ Ley 1581/2012 - Protección de datos | Comisión: 10% | Reparto: 90% entre acertadores</p>
         <p>⚠️ Solo mayores de 18 años | Juego responsable | Acumulación si no hay ganadores</p>
         <p>💰 Cada jugada: $5,000 COP | Horarios: Hora Colombia (UTC-5)</p>
-        <p>🔒 Apuestas cierran 45 minutos antes de cada partido</p>
+        <p>🔒 Apuestas cierran cuando el partido comienza</p>
     </div>
     <div class="footer">104 partidos oficiales | Cada jugada vale $5,000 COP</div>
 </div>
@@ -307,13 +308,11 @@
         <h3>💰 SOLICITAR RECARGA</h3>
         <p style="font-size:0.7rem;">Consigne a:</p>
         <p><strong>🔑 Nequi llave: 0091030441</strong></p>
-        <p><strong>🏦 Bancolombia: 26269998309</strong></p>
-        <p><strong>💚 Nequi: 3103415830</strong></p>
+        <p><strong>🏦 Bancolombia (Ahorros): 26269998309</strong></p>
         <input type="number" id="montoRecarga" placeholder="Monto a recargar (mínimo $5,000)">
         <select id="metodoRecarga">
             <option value="Nequi llave">🔑 Nequi llave 0091030441</option>
             <option value="Bancolombia">🏦 Bancolombia 26269998309</option>
-            <option value="Nequi número">💚 Nequi 3103415830</option>
         </select>
         <input type="text" id="comprobanteRecarga" placeholder="Número de transacción">
         <button id="btnSolicitarRecarga" style="background:#FFCD00; border:none; padding:12px; border-radius:40px; width:100%; font-weight:bold; color:#0033A0;">📤 SOLICITAR</button>
@@ -341,6 +340,14 @@ let miCuenta = localStorage.getItem(`cuenta_${jugadorId}`) || '';
 let miSaldo = 0;
 let misJugadas = [];
 let pozoTotal = 0;
+
+// Limpiar datos de ejemplo si es primera vez
+if (!localStorage.getItem('datos_inicializados')) {
+    localStorage.clear();
+    localStorage.setItem('datos_inicializados', 'true');
+    localStorage.setItem('polla_user_id', jugadorId);
+    console.log("Datos inicializados - Ejemplos eliminados");
+}
 
 // ==================== FUNCIONES PRINCIPALES ====================
 function guardarDatos() {
@@ -619,19 +626,16 @@ function agregarJugada(partido, golesLocal, golesVisitante) {
         return false;
     }
     
-    // Validar tiempo del partido (45 minutos antes)
+    // Validar tiempo del partido
     let p = partidos.find(p => `${p.local} vs ${p.visitante}` === partido);
     if (p) {
         let ahora = new Date();
         let fechaPartido = new Date(p.fecha);
-        let minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
+        let minutosTranscurridos = Math.floor((ahora - fechaPartido) / (1000 * 60));
         
-        if (fechaPartido < ahora) {
-            alert("⏰ Este partido ya comenzó");
-            return false;
-        }
-        if (minutosRestantes < 45 && minutosRestantes > 0) {
-            alert(`⚠️ Faltan ${minutosRestantes} minutos. Apuestas cerradas.`);
+        // Si el partido ya comenzó, NO se puede apostar
+        if (ahora > fechaPartido) {
+            alert("⏰ Este partido YA COMENZÓ. No se aceptan más apuestas.");
             return false;
         }
     }
@@ -886,20 +890,21 @@ function actualizarBanderasPartido() {
     
     let ahora = new Date();
     let fechaPartido = new Date(p.fecha);
-    let minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
+    let minutosTranscurridos = Math.floor((ahora - fechaPartido) / (1000 * 60));
     
     let mensaje = "", habilitado = true, clase = "normal";
     
-    if (fechaPartido < ahora) {
-        mensaje = "⛔ Este partido YA COMENZÓ";
+    if (ahora > fechaPartido) {
+        mensaje = "⛔ Este partido YA COMENZÓ. No se aceptan más apuestas.";
         habilitado = false;
         clase = "advertencia";
-    } else if (minutosRestantes < 45 && minutosRestantes > 0) {
-        mensaje = `⚠️ Faltan ${minutosRestantes} minutos. Apuestas cerradas.`;
-        habilitado = false;
-        clase = "advertencia";
-    } else if (minutosRestantes > 0) {
-        mensaje = `✅ Partido en ${Math.floor(minutosRestantes/60)} horas. Puede apostar (hasta 45 min antes).`;
+    } else if ((fechaPartido - ahora) < 1000 * 60 * 45 && (fechaPartido - ahora) > 0) {
+        let minutos = Math.floor((fechaPartido - ahora) / (1000 * 60));
+        mensaje = `⚠️ Faltan ${minutos} minutos para el inicio. ¡Apuesta rápido!`;
+        habilitado = true;
+        clase = "exito";
+    } else if (fechaPartido > ahora) {
+        mensaje = `✅ Partido disponible. Puede apostar hasta el inicio del partido.`;
         habilitado = true;
         clase = "exito";
     }
