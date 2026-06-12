@@ -112,6 +112,10 @@
             padding: 12px; border-radius: 30px; border: none; width: 100%; cursor: pointer;
             font-size: 1rem; margin-top: 15px;
         }
+        .btn-jugar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .ranking-list { list-style: none; }
         .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,205,0,0.2); }
         .rank-number { font-weight: bold; width: 30px; color: #FFCD00; }
@@ -167,21 +171,28 @@
         .btn-login { background: #FFCD00; border: none; padding: 10px; border-radius: 30px; width: 100%; font-weight: bold; cursor: pointer; color: #0033A0; }
         .admin-section { background: #0e2a1c; padding: 12px; border-radius: 20px; margin-bottom: 12px; }
         .footer { text-align: center; margin-top: 30px; font-size: 0.6rem; opacity: 0.7; margin-bottom: 60px; }
+        .aviso-partido {
+            background: #1e3328;
+            border-radius: 20px;
+            padding: 10px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .aviso-partido.advertencia { color: #ff6b6b; border: 1px solid #ff6b6b; }
+        .aviso-partido.normal { color: #cce6d4; border: 1px solid #FFCD00; }
+        .aviso-partido.exito { color: #90EE90; border: 1px solid #90EE90; }
     </style>
 </head>
 <body>
 
-<!-- WHATSAPP -->
 <div class="float-whatsapp" id="btnWhatsappCompartir">
-    <div class="whatsapp-icon">
-        <img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp">
-    </div>
+    <div class="whatsapp-icon"><img src="https://cdn-icons-png.flaticon.com/512/124/124034.png" alt="WhatsApp"></div>
 </div>
 
-<!-- BOTÓN ADMIN (LLAVE) -->
 <div class="btn-admin-icon" id="btnMostrarAdmin">🔑</div>
 
-<!-- MODAL ADMIN -->
 <div id="loginAdminModal" class="modal">
     <div class="modal-content">
         <h2 style="color:#FFCD00;">🔐 ACCESO ADMINISTRADOR</h2>
@@ -192,7 +203,6 @@
     </div>
 </div>
 
-<!-- MODAL REGISTRO -->
 <div id="modalRegistro" class="modal">
     <div class="modal-content">
         <h2 style="color:#FFCD00;">📝 REGISTRO DE JUGADOR</h2>
@@ -204,7 +214,6 @@
     </div>
 </div>
 
-<!-- CONTENIDO PRINCIPAL -->
 <div class="container">
     <div class="header">
         <div class="logo">🏆 LA POLLA MUNDIAL 2026 🏆</div>
@@ -216,7 +225,6 @@
         </div>
     </div>
 
-    <!-- POZO TOTAL -->
     <div class="pozo-card">
         <div class="pozo-label">🏆 POZO TOTAL ACUMULADO 🏆</div>
         <div class="pozo-amount" id="pozoTotalDisplay">$ 0</div>
@@ -230,7 +238,6 @@
         <button class="tab-btn admin-only" data-tab="admin" id="tabAdminBtn" style="display:none;">⚙️ ADMIN</button>
     </div>
 
-    <!-- TAB JUGADA -->
     <div id="tab-jugada" class="tab-content active">
         <div class="card">
             <h2>⚽ SELECCIONE EL PARTIDO</h2>
@@ -253,15 +260,13 @@
                 </div>
             </div>
             
-            <div class="monto-fijo">
-                💰 VALOR DE LA JUGADA: $5,000 COP (FIJO)
-            </div>
+            <div id="avisoPartido" class="aviso-partido normal">✅ Seleccione un partido para ver información</div>
             
+            <div class="monto-fijo">💰 VALOR DE LA JUGADA: $5,000 COP (FIJO)</div>
             <button id="btnJugar" class="btn-jugar">⚡ JUGAR AHORA</button>
         </div>
     </div>
 
-    <!-- TAB PARTIDOS -->
     <div id="tab-partidos" class="tab-content">
         <div class="card">
             <h2>📅 CALENDARIO MUNDIAL 2026 (HORA COLOMBIA)</h2>
@@ -269,18 +274,11 @@
         </div>
     </div>
 
-    <!-- TAB ADMIN -->
     <div id="tab-admin" class="tab-content">
         <div class="card">
             <h2>⚙️ PANEL ADMIN</h2>
-            <div class="admin-section">
-                <h3>📋 SOLICITUDES PENDIENTES</h3>
-                <div id="solicitudesPendientes">Cargando...</div>
-            </div>
-            <div class="admin-section">
-                <h3>👥 LISTA DE JUGADORES</h3>
-                <div id="listaJugadores">Cargando...</div>
-            </div>
+            <div class="admin-section"><h3>📋 SOLICITUDES PENDIENTES</h3><div id="solicitudesPendientes">Cargando...</div></div>
+            <div class="admin-section"><h3>👥 LISTA DE JUGADORES</h3><div id="listaJugadores">Cargando...</div></div>
             <div class="admin-section">
                 <h3>🔧 ACTIVAR SALDO</h3>
                 <select id="adminJugadorSelect" style="width:100%; padding:8px; border-radius:30px; background:#1e3328; color:white; margin-bottom:8px;"><option value="">-- Seleccione --</option></select>
@@ -292,13 +290,8 @@
         </div>
     </div>
 
-    <!-- RANKING -->
-    <div class="card">
-        <h2>🏅 RANKING</h2>
-        <ul class="ranking-list" id="rankingList"><li>Cargando...</li></ul>
-    </div>
+    <div class="card"><h2>🏅 RANKING</h2><ul class="ranking-list" id="rankingList"><li>Cargando...</li></ul></div>
 
-    <!-- MIS JUGADAS -->
     <div class="card">
         <h2>📜 MIS JUGADAS</h2>
         <div id="historialContainer">No hay jugadas</div>
@@ -306,33 +299,29 @@
         <button id="btnSoporteWhatsapp" class="btn-primary" style="width:100%; margin-top:8px; background: #25D366;">❓ SOPORTE</button>
     </div>
 
-    <!-- PUBLICIDAD -->
     <div class="publicidad">
-        <img id="publicidadImg" class="publicidad-img" src="https://refugiocampestreaguazul-commits.github.io/polla-mundial-2026/logo.png" alt="La Polla Mundial 2026" onclick="window.open('https://worldsystems.catalog.to/', '_blank')">
+        <img id="publicidadImg" class="publicidad-img" src="https://refugiocampestreaguazul-commits.github.io/polla-mundial-2026/logo.png" alt="La Polla Mundial 2026" style="width:100%; max-width:500px; border-radius:20px; cursor:pointer;" onclick="window.open('https://worldsystems.catalog.to/', '_blank')">
     </div>
 
-    <!-- LEGAL -->
     <div class="legal-info">
         <p>⚖️ Ley 1581/2012 - Protección de datos | Comisión del administrador: 10% | Reparto del 90% entre acertadores</p>
         <p>⚠️ Solo mayores de 18 años | Juego responsable | Acumulación si no hay ganadores</p>
         <p>💰 Cada jugada vale $5,000 COP | Horarios en hora Colombia (UTC-5)</p>
+        <p>🔒 Apuestas cierran 45 minutos antes de cada partido</p>
     </div>
     <div class="footer">104 partidos oficiales | Cada jugada vale $5,000 COP</div>
 </div>
 
-<!-- MODAL RECARGA -->
 <div id="modalRecarga" class="modal">
     <div class="modal-content">
         <h3>💰 SOLICITAR RECARGA</h3>
         <p style="font-size:0.7rem;">Consigne a:</p>
         <p><strong>🔑 Nequi llave: 0091030441</strong></p>
         <p><strong>🏦 Bancolombia: 26269998309</strong></p>
-        <p><strong>💚 Nequi: 3103415830</strong></p>
         <input type="number" id="montoRecarga" placeholder="Monto a recargar">
         <select id="metodoRecarga">
             <option value="Nequi llave">🔑 Nequi llave 0091030441</option>
             <option value="Bancolombia">🏦 Bancolombia 26269998309</option>
-            <option value="Nequi número">💚 Nequi 3103415830</option>
         </select>
         <input type="text" id="comprobanteRecarga" placeholder="Número de transacción / comprobante">
         <button id="btnSolicitarRecarga" style="background:#FFCD00; border:none; padding:12px; border-radius:40px; width:100%; font-weight:bold; color:#0033A0;">📤 SOLICITAR</button>
@@ -360,6 +349,15 @@ let miNombre = localStorage.getItem(`nombre_${jugadorId}`) || '';
 let miWhatsapp = localStorage.getItem(`whatsapp_${jugadorId}`) || '';
 let miCuenta = localStorage.getItem(`cuenta_${jugadorId}`) || '';
 let misJugadas = [];
+
+// ==================== FUNCIONES DE LIQUIDACIÓN ====================
+function marcarPartidoComoLiquidado(partidoId) {
+    localStorage.setItem(`liquidado_${partidoId}`, 'true');
+}
+
+function verificarPartidoLiquidado(partidoId) {
+    return localStorage.getItem(`liquidado_${partidoId}`) === 'true';
+}
 
 function actualizarDisplay() {
     if (miNombre) {
@@ -415,8 +413,186 @@ const banderasMap = {
     "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇭🇷 Croacia": "🇭🇷", "🇬🇭 Ghana": "🇬🇭", "🇵🇦 Panamá": "🇵🇦"
 };
 
+function formatearFecha(fechaISO) {
+    const fecha = new Date(fechaISO);
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const horas = fecha.getHours();
+    const minutos = fecha.getMinutes().toString().padStart(2, '0');
+    const ampm = horas >= 12 ? 'PM' : 'AM';
+    const hora12 = horas % 12 || 12;
+    return `${diasSemana[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]} ${hora12}:${minutos} ${ampm}`;
+}
+
+// ==================== PARTIDOS OFICIALES FIFA - HORA COLOMBIA ====================
+const PARTIDOS = [
+    { id: 1, fecha: "2026-06-11 14:00", local: "🇲🇽 México", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
+    { id: 2, fecha: "2026-06-11 21:00", local: "🇰🇷 Corea del Sur", visitante: "🇨🇿 República Checa", fase: "Grupo A" },
+    { id: 3, fecha: "2026-06-18 13:00", local: "🇨🇿 República Checa", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
+    { id: 4, fecha: "2026-06-18 20:00", local: "🇲🇽 México", visitante: "🇰🇷 Corea del Sur", fase: "Grupo A" },
+    { id: 5, fecha: "2026-06-23 13:00", local: "🇨🇿 República Checa", visitante: "🇲🇽 México", fase: "Grupo A" },
+    { id: 6, fecha: "2026-06-23 13:00", local: "🇰🇷 Corea del Sur", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
+    { id: 7, fecha: "2026-06-12 14:00", local: "🇨🇦 Canadá", visitante: "🇧🇦 Bosnia", fase: "Grupo B" },
+    { id: 8, fecha: "2026-06-13 13:00", local: "🇶🇦 Catar", visitante: "🇨🇭 Suiza", fase: "Grupo B" },
+    { id: 9, fecha: "2026-06-19 14:00", local: "🇨🇦 Canadá", visitante: "🇶🇦 Catar", fase: "Grupo B" },
+    { id: 10, fecha: "2026-06-19 21:00", local: "🇧🇦 Bosnia", visitante: "🇨🇭 Suiza", fase: "Grupo B" },
+    { id: 11, fecha: "2026-06-24 14:00", local: "🇨🇭 Suiza", visitante: "🇨🇦 Canadá", fase: "Grupo B" },
+    { id: 12, fecha: "2026-06-24 20:00", local: "🇧🇦 Bosnia", visitante: "🇶🇦 Catar", fase: "Grupo B" },
+    { id: 13, fecha: "2026-06-13 15:00", local: "🇧🇷 Brasil", visitante: "🇲🇦 Marruecos", fase: "Grupo C" },
+    { id: 14, fecha: "2026-06-13 20:00", local: "🇭🇹 Haití", visitante: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", fase: "Grupo C" },
+    { id: 15, fecha: "2026-06-20 15:00", local: "🇧🇷 Brasil", visitante: "🇭🇹 Haití", fase: "Grupo C" },
+    { id: 16, fecha: "2026-06-20 20:00", local: "🇲🇦 Marruecos", visitante: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", fase: "Grupo C" },
+    { id: 17, fecha: "2026-06-25 14:00", local: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", visitante: "🇧🇷 Brasil", fase: "Grupo C" },
+    { id: 18, fecha: "2026-06-25 14:00", local: "🇲🇦 Marruecos", visitante: "🇭🇹 Haití", fase: "Grupo C" },
+    { id: 19, fecha: "2026-06-12 20:00", local: "🇺🇸 USA", visitante: "🇵🇾 Paraguay", fase: "Grupo D" },
+    { id: 20, fecha: "2026-06-14 23:00", local: "🇦🇺 Australia", visitante: "🇹🇷 Turquía", fase: "Grupo D" },
+    { id: 21, fecha: "2026-06-19 23:00", local: "🇺🇸 USA", visitante: "🇦🇺 Australia", fase: "Grupo D" },
+    { id: 22, fecha: "2026-06-20 22:00", local: "🇵🇾 Paraguay", visitante: "🇹🇷 Turquía", fase: "Grupo D" },
+    { id: 23, fecha: "2026-06-26 14:00", local: "🇹🇷 Turquía", visitante: "🇺🇸 USA", fase: "Grupo D" },
+    { id: 24, fecha: "2026-06-26 14:00", local: "🇵🇾 Paraguay", visitante: "🇦🇺 Australia", fase: "Grupo D" },
+    { id: 25, fecha: "2026-06-14 12:00", local: "🇩🇪 Alemania", visitante: "🇨🇼 Curazao", fase: "Grupo E" },
+    { id: 26, fecha: "2026-06-14 18:00", local: "🇨🇮 Costa de Marfil", visitante: "🇪🇨 Ecuador", fase: "Grupo E" },
+    { id: 27, fecha: "2026-06-20 18:00", local: "🇩🇪 Alemania", visitante: "🇨🇮 Costa de Marfil", fase: "Grupo E" },
+    { id: 28, fecha: "2026-06-21 21:00", local: "🇨🇼 Curazao", visitante: "🇪🇨 Ecuador", fase: "Grupo E" },
+    { id: 29, fecha: "2026-06-25 19:00", local: "🇪🇨 Ecuador", visitante: "🇩🇪 Alemania", fase: "Grupo E" },
+    { id: 30, fecha: "2026-06-25 19:00", local: "🇨🇼 Curazao", visitante: "🇨🇮 Costa de Marfil", fase: "Grupo E" },
+    { id: 31, fecha: "2026-06-15 14:00", local: "🇳🇱 Países Bajos", visitante: "🇯🇵 Japón", fase: "Grupo F" },
+    { id: 32, fecha: "2026-06-15 20:00", local: "🇸🇪 Suecia", visitante: "🇹🇳 Túnez", fase: "Grupo F" },
+    { id: 33, fecha: "2026-06-21 14:00", local: "🇳🇱 Países Bajos", visitante: "🇸🇪 Suecia", fase: "Grupo F" },
+    { id: 34, fecha: "2026-06-21 20:00", local: "🇯🇵 Japón", visitante: "🇹🇳 Túnez", fase: "Grupo F" },
+    { id: 35, fecha: "2026-06-26 18:00", local: "🇹🇳 Túnez", visitante: "🇳🇱 Países Bajos", fase: "Grupo F" },
+    { id: 36, fecha: "2026-06-26 18:00", local: "🇯🇵 Japón", visitante: "🇸🇪 Suecia", fase: "Grupo F" },
+    { id: 37, fecha: "2026-06-16 13:00", local: "🇧🇪 Bélgica", visitante: "🇪🇬 Egipto", fase: "Grupo G" },
+    { id: 38, fecha: "2026-06-16 20:00", local: "🇮🇷 Irán", visitante: "🇳🇿 Nueva Zelanda", fase: "Grupo G" },
+    { id: 39, fecha: "2026-06-22 13:00", local: "🇧🇪 Bélgica", visitante: "🇮🇷 Irán", fase: "Grupo G" },
+    { id: 40, fecha: "2026-06-22 20:00", local: "🇪🇬 Egipto", visitante: "🇳🇿 Nueva Zelanda", fase: "Grupo G" },
+    { id: 41, fecha: "2026-06-27 16:00", local: "🇳🇿 Nueva Zelanda", visitante: "🇧🇪 Bélgica", fase: "Grupo G" },
+    { id: 42, fecha: "2026-06-27 16:00", local: "🇪🇬 Egipto", visitante: "🇮🇷 Irán", fase: "Grupo G" },
+    { id: 43, fecha: "2026-06-17 12:00", local: "🇪🇸 España", visitante: "🇨🇻 Cabo Verde", fase: "Grupo H" },
+    { id: 44, fecha: "2026-06-17 20:00", local: "🇸🇦 Arabia Saudita", visitante: "🇺🇾 Uruguay", fase: "Grupo H" },
+    { id: 45, fecha: "2026-06-23 14:00", local: "🇪🇸 España", visitante: "🇸🇦 Arabia Saudita", fase: "Grupo H" },
+    { id: 46, fecha: "2026-06-23 20:00", local: "🇨🇻 Cabo Verde", visitante: "🇺🇾 Uruguay", fase: "Grupo H" },
+    { id: 47, fecha: "2026-06-28 16:00", local: "🇺🇾 Uruguay", visitante: "🇪🇸 España", fase: "Grupo H" },
+    { id: 48, fecha: "2026-06-28 16:00", local: "🇨🇻 Cabo Verde", visitante: "🇸🇦 Arabia Saudita", fase: "Grupo H" },
+    { id: 49, fecha: "2026-06-17 15:00", local: "🇫🇷 Francia", visitante: "🇸🇳 Senegal", fase: "Grupo I" },
+    { id: 50, fecha: "2026-06-18 22:00", local: "🇮🇶 Irak", visitante: "🇳🇴 Noruega", fase: "Grupo I" },
+    { id: 51, fecha: "2026-06-23 18:00", local: "🇫🇷 Francia", visitante: "🇮🇶 Irak", fase: "Grupo I" },
+    { id: 52, fecha: "2026-06-23 23:00", local: "🇸🇳 Senegal", visitante: "🇳🇴 Noruega", fase: "Grupo I" },
+    { id: 53, fecha: "2026-06-28 14:00", local: "🇳🇴 Noruega", visitante: "🇫🇷 Francia", fase: "Grupo I" },
+    { id: 54, fecha: "2026-06-28 14:00", local: "🇸🇳 Senegal", visitante: "🇮🇶 Irak", fase: "Grupo I" },
+    { id: 55, fecha: "2026-06-18 14:00", local: "🇦🇷 Argentina", visitante: "🇩🇿 Argelia", fase: "Grupo J" },
+    { id: 56, fecha: "2026-06-19 01:00", local: "🇦🇹 Austria", visitante: "🇯🇴 Jordania", fase: "Grupo J" },
+    { id: 57, fecha: "2026-06-23 16:00", local: "🇦🇷 Argentina", visitante: "🇦🇹 Austria", fase: "Grupo J" },
+    { id: 58, fecha: "2026-06-24 01:00", local: "🇩🇿 Argelia", visitante: "🇯🇴 Jordania", fase: "Grupo J" },
+    { id: 59, fecha: "2026-06-28 20:00", local: "🇯🇴 Jordania", visitante: "🇦🇷 Argentina", fase: "Grupo J" },
+    { id: 60, fecha: "2026-06-28 20:00", local: "🇩🇿 Argelia", visitante: "🇦🇹 Austria", fase: "Grupo J" },
+    { id: 61, fecha: "2026-06-17 12:00", local: "🇵🇹 Portugal", visitante: "🇨🇩 RD Congo", fase: "Grupo K" },
+    { id: 62, fecha: "2026-06-17 21:00", local: "🇺🇿 Uzbekistán", visitante: "🇨🇴 Colombia", fase: "Grupo K" },
+    { id: 63, fecha: "2026-06-23 12:00", local: "🇵🇹 Portugal", visitante: "🇺🇿 Uzbekistán", fase: "Grupo K" },
+    { id: 64, fecha: "2026-06-23 21:00", local: "🇨🇴 Colombia", visitante: "🇨🇩 RD Congo", fase: "Grupo K" },
+    { id: 65, fecha: "2026-06-27 18:30", local: "🇨🇴 Colombia", visitante: "🇵🇹 Portugal", fase: "Grupo K" },
+    { id: 66, fecha: "2026-06-27 18:30", local: "🇨🇩 RD Congo", visitante: "🇺🇿 Uzbekistán", fase: "Grupo K" },
+    { id: 67, fecha: "2026-06-16 15:00", local: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", visitante: "🇭🇷 Croacia", fase: "Grupo L" },
+    { id: 68, fecha: "2026-06-16 21:00", local: "🇬🇭 Ghana", visitante: "🇵🇦 Panamá", fase: "Grupo L" },
+    { id: 69, fecha: "2026-06-22 15:00", local: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", visitante: "🇬🇭 Ghana", fase: "Grupo L" },
+    { id: 70, fecha: "2026-06-22 21:00", local: "🇭🇷 Croacia", visitante: "🇵🇦 Panamá", fase: "Grupo L" },
+    { id: 71, fecha: "2026-06-28 18:00", local: "🇵🇦 Panamá", visitante: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", fase: "Grupo L" },
+    { id: 72, fecha: "2026-06-28 18:00", local: "🇭🇷 Croacia", visitante: "🇬🇭 Ghana", fase: "Grupo L" },
+    { id: 73, fecha: "2026-07-02 12:00", local: "🏆 1° Grupo A", visitante: "🏆 2° Grupo C", fase: "Dieciseisavos" },
+    { id: 74, fecha: "2026-07-02 16:00", local: "🏆 1° Grupo B", visitante: "🏆 2° Grupo F", fase: "Dieciseisavos" },
+    { id: 75, fecha: "2026-07-03 12:00", local: "🏆 1° Grupo C", visitante: "🏆 3° Grupo A/B/F", fase: "Dieciseisavos" },
+    { id: 76, fecha: "2026-07-03 16:00", local: "🏆 1° Grupo D", visitante: "🏆 2° Grupo E", fase: "Dieciseisavos" },
+    { id: 77, fecha: "2026-07-04 12:00", local: "🏆 1° Grupo E", visitante: "🏆 2° Grupo D", fase: "Dieciseisavos" },
+    { id: 78, fecha: "2026-07-04 16:00", local: "🏆 1° Grupo F", visitante: "🏆 2° Grupo B", fase: "Dieciseisavos" },
+    { id: 79, fecha: "2026-07-05 12:00", local: "🏆 1° Grupo G", visitante: "🏆 2° Grupo H", fase: "Dieciseisavos" },
+    { id: 80, fecha: "2026-07-05 16:00", local: "🏆 1° Grupo H", visitante: "🏆 2° Grupo G", fase: "Dieciseisavos" },
+    { id: 81, fecha: "2026-07-06 12:00", local: "🏆 1° Grupo I", visitante: "🏆 2° Grupo J", fase: "Dieciseisavos" },
+    { id: 82, fecha: "2026-07-06 16:00", local: "🏆 1° Grupo J", visitante: "🏆 2° Grupo I", fase: "Dieciseisavos" },
+    { id: 83, fecha: "2026-07-07 12:00", local: "🏆 1° Grupo K", visitante: "🏆 2° Grupo L", fase: "Dieciseisavos" },
+    { id: 84, fecha: "2026-07-07 16:00", local: "🏆 1° Grupo L", visitante: "🏆 2° Grupo K", fase: "Dieciseisavos" },
+    { id: 85, fecha: "2026-07-08 12:00", local: "🏆 Mejor 3° Grupo A/B/C/D/E", visitante: "🏆 Mejor 3° Grupo F/G/H/I/J", fase: "Dieciseisavos" },
+    { id: 86, fecha: "2026-07-08 16:00", local: "🏆 Mejor 3° Grupo K/L", visitante: "🏆 Mejor 3° Grupo", fase: "Dieciseisavos" },
+    { id: 87, fecha: "2026-07-09 12:00", local: "🏆 Ganador D16 1", visitante: "🏆 Ganador D16 2", fase: "Octavos" },
+    { id: 88, fecha: "2026-07-09 16:00", local: "🏆 Ganador D16 3", visitante: "🏆 Ganador D16 4", fase: "Octavos" },
+    { id: 89, fecha: "2026-07-11 12:00", local: "🏆 Ganador D16 5", visitante: "🏆 Ganador D16 6", fase: "Octavos" },
+    { id: 90, fecha: "2026-07-11 16:00", local: "🏆 Ganador D16 7", visitante: "🏆 Ganador D16 8", fase: "Octavos" },
+    { id: 91, fecha: "2026-07-12 12:00", local: "🏆 Ganador D16 9", visitante: "🏆 Ganador D16 10", fase: "Octavos" },
+    { id: 92, fecha: "2026-07-12 16:00", local: "🏆 Ganador D16 11", visitante: "🏆 Ganador D16 12", fase: "Octavos" },
+    { id: 93, fecha: "2026-07-13 12:00", local: "🏆 Ganador D16 13", visitante: "🏆 Ganador D16 14", fase: "Octavos" },
+    { id: 94, fecha: "2026-07-13 16:00", local: "🏆 Ganador D16 15", visitante: "🏆 Ganador D16 16", fase: "Octavos" },
+    { id: 95, fecha: "2026-07-16 12:00", local: "🏆 Ganador Octavo 1", visitante: "🏆 Ganador Octavo 2", fase: "Cuartos" },
+    { id: 96, fecha: "2026-07-16 16:00", local: "🏆 Ganador Octavo 3", visitante: "🏆 Ganador Octavo 4", fase: "Cuartos" },
+    { id: 97, fecha: "2026-07-17 12:00", local: "🏆 Ganador Octavo 5", visitante: "🏆 Ganador Octavo 6", fase: "Cuartos" },
+    { id: 98, fecha: "2026-07-17 16:00", local: "🏆 Ganador Octavo 7", visitante: "🏆 Ganador Octavo 8", fase: "Cuartos" },
+    { id: 99, fecha: "2026-07-20 14:00", local: "🏆 Ganador Cuarto 1", visitante: "🏆 Ganador Cuarto 2", fase: "Semifinal" },
+    { id: 100, fecha: "2026-07-21 14:00", local: "🏆 Ganador Cuarto 3", visitante: "🏆 Ganador Cuarto 4", fase: "Semifinal" },
+    { id: 101, fecha: "2026-07-24 14:00", local: "🏆 Perdedor Semifinal 1", visitante: "🏆 Perdedor Semifinal 2", fase: "Tercer Lugar" },
+    { id: 102, fecha: "2026-07-25 15:00", local: "🏆 Ganador Semifinal 1", visitante: "🏆 Ganador Semifinal 2", fase: "FINAL" }
+];
+PARTIDOS.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+// ==================== FUNCIÓN ACTUALIZAR BANDERAS (CON VALIDACIÓN 45 MINUTOS) ====================
 function actualizarBanderasPartido() {
     const select = document.getElementById('partidoSelect');
+    const selectedId = select.value;
+    if (!selectedId) return;
+    
+    const partido = PARTIDOS.find(p => p.id == parseInt(selectedId));
+    if (!partido) return;
+    
+    const ahora = new Date();
+    const fechaPartido = new Date(partido.fecha);
+    const minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
+    const horasRestantes = Math.floor(minutosRestantes / 60);
+    
+    let mensajeAdvertencia = "";
+    let apuestaHabilitada = true;
+    let claseAviso = "normal";
+    
+    // Verificar si el partido ya fue liquidado
+    if (verificarPartidoLiquidado(partido.id)) {
+        mensajeAdvertencia = "⛔ Este partido YA FUE LIQUIDADO. No se aceptan apuestas.";
+        apuestaHabilitada = false;
+        claseAviso = "advertencia";
+    }
+    // Verificar si el partido ya comenzó
+    else if (fechaPartido < ahora) {
+        mensajeAdvertencia = "⛔ Este partido YA COMENZÓ. No se aceptan más apuestas.";
+        apuestaHabilitada = false;
+        claseAviso = "advertencia";
+    }
+    // Verificar si faltan menos de 45 MINUTOS (cambio importante)
+    else if (minutosRestantes < 45 && minutosRestantes > 0) {
+        mensajeAdvertencia = `⚠️ Faltan solo ${minutosRestantes} minutos para el inicio. Apuestas cerradas.`;
+        apuestaHabilitada = false;
+        claseAviso = "advertencia";
+    }
+    // Partido disponible (más de 45 minutos)
+    else if (horasRestantes < 24 && horasRestantes > 0) {
+        mensajeAdvertencia = `✅ Partido en ${horasRestantes} horas. Puede apostar (hasta 45 min antes).`;
+        apuestaHabilitada = true;
+        claseAviso = "exito";
+    } else if (minutosRestantes > 0) {
+        const diasRestantes = Math.floor(horasRestantes / 24);
+        mensajeAdvertencia = `✅ Partido en ${diasRestantes} días. Puede apostar normalmente.`;
+        apuestaHabilitada = true;
+        claseAviso = "exito";
+    }
+    
+    // Mostrar mensaje en la interfaz
+    const avisoDiv = document.getElementById('avisoPartido');
+    avisoDiv.innerHTML = mensajeAdvertencia;
+    avisoDiv.className = `aviso-partido ${claseAviso}`;
+    
+    // Deshabilitar/habilitar botón de jugar
+    const btnJugar = document.getElementById('btnJugar');
+    if (btnJugar) {
+        btnJugar.disabled = !apuestaHabilitada;
+        btnJugar.style.opacity = apuestaHabilitada ? '1' : '0.5';
+        btnJugar.style.cursor = apuestaHabilitada ? 'pointer' : 'not-allowed';
+    }
+    
+    // Actualizar banderas
     const selectedText = select.options[select.selectedIndex]?.text || "";
     const partes = selectedText.split(" | ");
     if (partes.length >= 4) {
@@ -431,163 +607,8 @@ function actualizarBanderasPartido() {
         }
     }
 }
+
 document.getElementById('partidoSelect').onchange = actualizarBanderasPartido;
-
-function formatearFecha(fechaISO) {
-    const fecha = new Date(fechaISO);
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const horas = fecha.getHours();
-    const minutos = fecha.getMinutes().toString().padStart(2, '0');
-    const ampm = horas >= 12 ? 'PM' : 'AM';
-    const hora12 = horas % 12 || 12;
-    return `${diasSemana[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]} ${hora12}:${minutos} ${ampm}`;
-}
-
-// PARTIDOS CON HORARIO COLOMBIA CORREGIDO
-// PARTIDOS CON HORARIO OFICIAL FIFA - HORA COLOMBIA (UTC-5)
-const PARTIDOS = [
-    // GRUPO A
-    { id: 1, fecha: "2026-06-11 14:00", local: "🇲🇽 México", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A", grupo: "A" },
-    { id: 2, fecha: "2026-06-11 21:00", local: "🇰🇷 Corea del Sur", visitante: "🇨🇿 República Checa", fase: "Grupo A", grupo: "A" },
-    { id: 3, fecha: "2026-06-18 13:00", local: "🇨🇿 República Checa", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A", grupo: "A" },
-    { id: 4, fecha: "2026-06-18 20:00", local: "🇲🇽 México", visitante: "🇰🇷 Corea del Sur", fase: "Grupo A", grupo: "A" },
-    { id: 5, fecha: "2026-06-23 13:00", local: "🇨🇿 República Checa", visitante: "🇲🇽 México", fase: "Grupo A", grupo: "A" },
-    { id: 6, fecha: "2026-06-23 13:00", local: "🇰🇷 Corea del Sur", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A", grupo: "A" },
-
-    // GRUPO B
-    { id: 7, fecha: "2026-06-12 14:00", local: "🇨🇦 Canadá", visitante: "🇧🇦 Bosnia", fase: "Grupo B", grupo: "B" },
-    { id: 8, fecha: "2026-06-13 13:00", local: "🇶🇦 Catar", visitante: "🇨🇭 Suiza", fase: "Grupo B", grupo: "B" },
-    { id: 9, fecha: "2026-06-19 14:00", local: "🇨🇦 Canadá", visitante: "🇶🇦 Catar", fase: "Grupo B", grupo: "B" },
-    { id: 10, fecha: "2026-06-19 21:00", local: "🇧🇦 Bosnia", visitante: "🇨🇭 Suiza", fase: "Grupo B", grupo: "B" },
-    { id: 11, fecha: "2026-06-24 14:00", local: "🇨🇭 Suiza", visitante: "🇨🇦 Canadá", fase: "Grupo B", grupo: "B" },
-    { id: 12, fecha: "2026-06-24 20:00", local: "🇧🇦 Bosnia", visitante: "🇶🇦 Catar", fase: "Grupo B", grupo: "B" },
-
-    // GRUPO C
-    { id: 13, fecha: "2026-06-13 15:00", local: "🇧🇷 Brasil", visitante: "🇲🇦 Marruecos", fase: "Grupo C", grupo: "C" },
-    { id: 14, fecha: "2026-06-13 20:00", local: "🇭🇹 Haití", visitante: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", fase: "Grupo C", grupo: "C" },
-    { id: 15, fecha: "2026-06-20 15:00", local: "🇧🇷 Brasil", visitante: "🇭🇹 Haití", fase: "Grupo C", grupo: "C" },
-    { id: 16, fecha: "2026-06-20 20:00", local: "🇲🇦 Marruecos", visitante: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", fase: "Grupo C", grupo: "C" },
-    { id: 17, fecha: "2026-06-25 14:00", local: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", visitante: "🇧🇷 Brasil", fase: "Grupo C", grupo: "C" },
-    { id: 18, fecha: "2026-06-25 14:00", local: "🇲🇦 Marruecos", visitante: "🇭🇹 Haití", fase: "Grupo C", grupo: "C" },
-
-    // GRUPO D
-    { id: 19, fecha: "2026-06-12 20:00", local: "🇺🇸 USA", visitante: "🇵🇾 Paraguay", fase: "Grupo D", grupo: "D" },
-    { id: 20, fecha: "2026-06-14 23:00", local: "🇦🇺 Australia", visitante: "🇹🇷 Turquía", fase: "Grupo D", grupo: "D" },
-    { id: 21, fecha: "2026-06-19 23:00", local: "🇺🇸 USA", visitante: "🇦🇺 Australia", fase: "Grupo D", grupo: "D" },
-    { id: 22, fecha: "2026-06-20 22:00", local: "🇵🇾 Paraguay", visitante: "🇹🇷 Turquía", fase: "Grupo D", grupo: "D" },
-    { id: 23, fecha: "2026-06-26 14:00", local: "🇹🇷 Turquía", visitante: "🇺🇸 USA", fase: "Grupo D", grupo: "D" },
-    { id: 24, fecha: "2026-06-26 14:00", local: "🇵🇾 Paraguay", visitante: "🇦🇺 Australia", fase: "Grupo D", grupo: "D" },
-
-    // GRUPO E
-    { id: 25, fecha: "2026-06-14 12:00", local: "🇩🇪 Alemania", visitante: "🇨🇼 Curazao", fase: "Grupo E", grupo: "E" },
-    { id: 26, fecha: "2026-06-14 18:00", local: "🇨🇮 Costa de Marfil", visitante: "🇪🇨 Ecuador", fase: "Grupo E", grupo: "E" },
-    { id: 27, fecha: "2026-06-20 18:00", local: "🇩🇪 Alemania", visitante: "🇨🇮 Costa de Marfil", fase: "Grupo E", grupo: "E" },
-    { id: 28, fecha: "2026-06-21 21:00", local: "🇨🇼 Curazao", visitante: "🇪🇨 Ecuador", fase: "Grupo E", grupo: "E" },
-    { id: 29, fecha: "2026-06-25 19:00", local: "🇪🇨 Ecuador", visitante: "🇩🇪 Alemania", fase: "Grupo E", grupo: "E" },
-    { id: 30, fecha: "2026-06-25 19:00", local: "🇨🇼 Curazao", visitante: "🇨🇮 Costa de Marfil", fase: "Grupo E", grupo: "E" },
-
-    // GRUPO F
-    { id: 31, fecha: "2026-06-15 14:00", local: "🇳🇱 Países Bajos", visitante: "🇯🇵 Japón", fase: "Grupo F", grupo: "F" },
-    { id: 32, fecha: "2026-06-15 20:00", local: "🇸🇪 Suecia", visitante: "🇹🇳 Túnez", fase: "Grupo F", grupo: "F" },
-    { id: 33, fecha: "2026-06-21 14:00", local: "🇳🇱 Países Bajos", visitante: "🇸🇪 Suecia", fase: "Grupo F", grupo: "F" },
-    { id: 34, fecha: "2026-06-21 20:00", local: "🇯🇵 Japón", visitante: "🇹🇳 Túnez", fase: "Grupo F", grupo: "F" },
-    { id: 35, fecha: "2026-06-26 18:00", local: "🇹🇳 Túnez", visitante: "🇳🇱 Países Bajos", fase: "Grupo F", grupo: "F" },
-    { id: 36, fecha: "2026-06-26 18:00", local: "🇯🇵 Japón", visitante: "🇸🇪 Suecia", fase: "Grupo F", grupo: "F" },
-
-    // GRUPO G
-    { id: 37, fecha: "2026-06-16 13:00", local: "🇧🇪 Bélgica", visitante: "🇪🇬 Egipto", fase: "Grupo G", grupo: "G" },
-    { id: 38, fecha: "2026-06-16 20:00", local: "🇮🇷 Irán", visitante: "🇳🇿 Nueva Zelanda", fase: "Grupo G", grupo: "G" },
-    { id: 39, fecha: "2026-06-22 13:00", local: "🇧🇪 Bélgica", visitante: "🇮🇷 Irán", fase: "Grupo G", grupo: "G" },
-    { id: 40, fecha: "2026-06-22 20:00", local: "🇪🇬 Egipto", visitante: "🇳🇿 Nueva Zelanda", fase: "Grupo G", grupo: "G" },
-    { id: 41, fecha: "2026-06-27 16:00", local: "🇳🇿 Nueva Zelanda", visitante: "🇧🇪 Bélgica", fase: "Grupo G", grupo: "G" },
-    { id: 42, fecha: "2026-06-27 16:00", local: "🇪🇬 Egipto", visitante: "🇮🇷 Irán", fase: "Grupo G", grupo: "G" },
-
-    // GRUPO H
-    { id: 43, fecha: "2026-06-17 12:00", local: "🇪🇸 España", visitante: "🇨🇻 Cabo Verde", fase: "Grupo H", grupo: "H" },
-    { id: 44, fecha: "2026-06-17 20:00", local: "🇸🇦 Arabia Saudita", visitante: "🇺🇾 Uruguay", fase: "Grupo H", grupo: "H" },
-    { id: 45, fecha: "2026-06-23 14:00", local: "🇪🇸 España", visitante: "🇸🇦 Arabia Saudita", fase: "Grupo H", grupo: "H" },
-    { id: 46, fecha: "2026-06-23 20:00", local: "🇨🇻 Cabo Verde", visitante: "🇺🇾 Uruguay", fase: "Grupo H", grupo: "H" },
-    { id: 47, fecha: "2026-06-28 16:00", local: "🇺🇾 Uruguay", visitante: "🇪🇸 España", fase: "Grupo H", grupo: "H" },
-    { id: 48, fecha: "2026-06-28 16:00", local: "🇨🇻 Cabo Verde", visitante: "🇸🇦 Arabia Saudita", fase: "Grupo H", grupo: "H" },
-
-    // GRUPO I
-    { id: 49, fecha: "2026-06-17 15:00", local: "🇫🇷 Francia", visitante: "🇸🇳 Senegal", fase: "Grupo I", grupo: "I" },
-    { id: 50, fecha: "2026-06-18 22:00", local: "🇮🇶 Irak", visitante: "🇳🇴 Noruega", fase: "Grupo I", grupo: "I" },
-    { id: 51, fecha: "2026-06-23 18:00", local: "🇫🇷 Francia", visitante: "🇮🇶 Irak", fase: "Grupo I", grupo: "I" },
-    { id: 52, fecha: "2026-06-23 23:00", local: "🇸🇳 Senegal", visitante: "🇳🇴 Noruega", fase: "Grupo I", grupo: "I" },
-    { id: 53, fecha: "2026-06-28 14:00", local: "🇳🇴 Noruega", visitante: "🇫🇷 Francia", fase: "Grupo I", grupo: "I" },
-    { id: 54, fecha: "2026-06-28 14:00", local: "🇸🇳 Senegal", visitante: "🇮🇶 Irak", fase: "Grupo I", grupo: "I" },
-
-    // GRUPO J
-    { id: 55, fecha: "2026-06-18 14:00", local: "🇦🇷 Argentina", visitante: "🇩🇿 Argelia", fase: "Grupo J", grupo: "J" },
-    { id: 56, fecha: "2026-06-19 01:00", local: "🇦🇹 Austria", visitante: "🇯🇴 Jordania", fase: "Grupo J", grupo: "J" },
-    { id: 57, fecha: "2026-06-23 16:00", local: "🇦🇷 Argentina", visitante: "🇦🇹 Austria", fase: "Grupo J", grupo: "J" },
-    { id: 58, fecha: "2026-06-24 01:00", local: "🇩🇿 Argelia", visitante: "🇯🇴 Jordania", fase: "Grupo J", grupo: "J" },
-    { id: 59, fecha: "2026-06-28 20:00", local: "🇯🇴 Jordania", visitante: "🇦🇷 Argentina", fase: "Grupo J", grupo: "J" },
-    { id: 60, fecha: "2026-06-28 20:00", local: "🇩🇿 Argelia", visitante: "🇦🇹 Austria", fase: "Grupo J", grupo: "J" },
-
-    // GRUPO K (Colombia)
-    { id: 61, fecha: "2026-06-17 12:00", local: "🇵🇹 Portugal", visitante: "🇨🇩 RD Congo", fase: "Grupo K", grupo: "K" },
-    { id: 62, fecha: "2026-06-17 21:00", local: "🇺🇿 Uzbekistán", visitante: "🇨🇴 Colombia", fase: "Grupo K", grupo: "K" }, // COLOMBIA VS UZBEKISTÁN - 9:00 PM COL
-    { id: 63, fecha: "2026-06-23 12:00", local: "🇵🇹 Portugal", visitante: "🇺🇿 Uzbekistán", fase: "Grupo K", grupo: "K" },
-    { id: 64, fecha: "2026-06-23 21:00", local: "🇨🇴 Colombia", visitante: "🇨🇩 RD Congo", fase: "Grupo K", grupo: "K" }, // COLOMBIA VS RD CONGO - 9:00 PM COL
-    { id: 65, fecha: "2026-06-27 18:30", local: "🇨🇴 Colombia", visitante: "🇵🇹 Portugal", fase: "Grupo K", grupo: "K" }, // COLOMBIA VS PORTUGAL - 6:30 PM COL
-    { id: 66, fecha: "2026-06-27 18:30", local: "🇨🇩 RD Congo", visitante: "🇺🇿 Uzbekistán", fase: "Grupo K", grupo: "K" },
-
-    // GRUPO L
-    { id: 67, fecha: "2026-06-16 15:00", local: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", visitante: "🇭🇷 Croacia", fase: "Grupo L", grupo: "L" },
-    { id: 68, fecha: "2026-06-16 21:00", local: "🇬🇭 Ghana", visitante: "🇵🇦 Panamá", fase: "Grupo L", grupo: "L" },
-    { id: 69, fecha: "2026-06-22 15:00", local: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", visitante: "🇬🇭 Ghana", fase: "Grupo L", grupo: "L" },
-    { id: 70, fecha: "2026-06-22 21:00", local: "🇭🇷 Croacia", visitante: "🇵🇦 Panamá", fase: "Grupo L", grupo: "L" },
-    { id: 71, fecha: "2026-06-28 18:00", local: "🇵🇦 Panamá", visitante: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", fase: "Grupo L", grupo: "L" },
-    { id: 72, fecha: "2026-06-28 18:00", local: "🇭🇷 Croacia", visitante: "🇬🇭 Ghana", fase: "Grupo L", grupo: "L" },
-
-    // DIEZ Y SEISAVOS DE FINAL (16 Partidos)
-    { id: 73, fecha: "2026-07-02 12:00", local: "🏆 1° Grupo A", visitante: "🏆 2° Grupo C", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 74, fecha: "2026-07-02 16:00", local: "🏆 1° Grupo B", visitante: "🏆 2° Grupo F", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 75, fecha: "2026-07-03 12:00", local: "🏆 1° Grupo C", visitante: "🏆 3° Grupo A/B/F", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 76, fecha: "2026-07-03 16:00", local: "🏆 1° Grupo D", visitante: "🏆 2° Grupo E", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 77, fecha: "2026-07-04 12:00", local: "🏆 1° Grupo E", visitante: "🏆 2° Grupo D", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 78, fecha: "2026-07-04 16:00", local: "🏆 1° Grupo F", visitante: "🏆 2° Grupo B", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 79, fecha: "2026-07-05 12:00", local: "🏆 1° Grupo G", visitante: "🏆 2° Grupo H", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 80, fecha: "2026-07-05 16:00", local: "🏆 1° Grupo H", visitante: "🏆 2° Grupo G", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 81, fecha: "2026-07-06 12:00", local: "🏆 1° Grupo I", visitante: "🏆 2° Grupo J", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 82, fecha: "2026-07-06 16:00", local: "🏆 1° Grupo J", visitante: "🏆 2° Grupo I", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 83, fecha: "2026-07-07 12:00", local: "🏆 1° Grupo K", visitante: "🏆 2° Grupo L", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 84, fecha: "2026-07-07 16:00", local: "🏆 1° Grupo L", visitante: "🏆 2° Grupo K", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 85, fecha: "2026-07-08 12:00", local: "🏆 Mejor 3° Grupo A/B/C/D/E", visitante: "🏆 Mejor 3° Grupo F/G/H/I/J", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 86, fecha: "2026-07-08 16:00", local: "🏆 Mejor 3° Grupo K/L", visitante: "🏆 Mejor 3° Grupo", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 87, fecha: "2026-07-09 12:00", local: "🏆 1° Grupo M", visitante: "🏆 2° Grupo N", fase: "Dieciseisavos", grupo: "KO" },
-    { id: 88, fecha: "2026-07-09 16:00", local: "🏆 1° Grupo O", visitante: "🏆 2° Grupo P", fase: "Dieciseisavos", grupo: "KO" },
-    
-    // OCTAVOS DE FINAL (8 Partidos)
-    { id: 89, fecha: "2026-07-11 12:00", local: "🏆 Ganador D16 1", visitante: "🏆 Ganador D16 2", fase: "Octavos", grupo: "KO" },
-    { id: 90, fecha: "2026-07-11 16:00", local: "🏆 Ganador D16 3", visitante: "🏆 Ganador D16 4", fase: "Octavos", grupo: "KO" },
-    { id: 91, fecha: "2026-07-12 12:00", local: "🏆 Ganador D16 5", visitante: "🏆 Ganador D16 6", fase: "Octavos", grupo: "KO" },
-    { id: 92, fecha: "2026-07-12 16:00", local: "🏆 Ganador D16 7", visitante: "🏆 Ganador D16 8", fase: "Octavos", grupo: "KO" },
-    { id: 93, fecha: "2026-07-13 12:00", local: "🏆 Ganador D16 9", visitante: "🏆 Ganador D16 10", fase: "Octavos", grupo: "KO" },
-    { id: 94, fecha: "2026-07-13 16:00", local: "🏆 Ganador D16 11", visitante: "🏆 Ganador D16 12", fase: "Octavos", grupo: "KO" },
-    { id: 95, fecha: "2026-07-14 12:00", local: "🏆 Ganador D16 13", visitante: "🏆 Ganador D16 14", fase: "Octavos", grupo: "KO" },
-    { id: 96, fecha: "2026-07-14 16:00", local: "🏆 Ganador D16 15", visitante: "🏆 Ganador D16 16", fase: "Octavos", grupo: "KO" },
-
-    // CUARTOS DE FINAL (4 Partidos)
-    { id: 97, fecha: "2026-07-16 12:00", local: "🏆 Ganador Octavo 1", visitante: "🏆 Ganador Octavo 2", fase: "Cuartos", grupo: "KO" },
-    { id: 98, fecha: "2026-07-16 16:00", local: "🏆 Ganador Octavo 3", visitante: "🏆 Ganador Octavo 4", fase: "Cuartos", grupo: "KO" },
-    { id: 99, fecha: "2026-07-17 12:00", local: "🏆 Ganador Octavo 5", visitante: "🏆 Ganador Octavo 6", fase: "Cuartos", grupo: "KO" },
-    { id: 100, fecha: "2026-07-17 16:00", local: "🏆 Ganador Octavo 7", visitante: "🏆 Ganador Octavo 8", fase: "Cuartos", grupo: "KO" },
-
-    // SEMIFINALES (2 Partidos)
-    { id: 101, fecha: "2026-07-20 14:00", local: "🏆 Ganador Cuarto 1", visitante: "🏆 Ganador Cuarto 2", fase: "Semifinal", grupo: "KO" },
-    { id: 102, fecha: "2026-07-21 14:00", local: "🏆 Ganador Cuarto 3", visitante: "🏆 Ganador Cuarto 4", fase: "Semifinal", grupo: "KO" },
-
-    // TERCER LUGAR (1 Partido)
-    { id: 103, fecha: "2026-07-24 14:00", local: "🏆 Perdedor Semifinal 1", visitante: "🏆 Perdedor Semifinal 2", fase: "Tercer Lugar", grupo: "KO" },
-
-    // FINAL (1 Partido)
-    { id: 104, fecha: "2026-07-25 15:00", local: "🏆 Ganador Semifinal 1", visitante: "🏆 Ganador Semifinal 2", fase: "FINAL", grupo: "KO" }
-];
-PARTIDOS.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
 // ==================== WHATSAPP ====================
 document.getElementById('btnWhatsappCompartir').onclick = () => {
@@ -703,17 +724,69 @@ async function cargarDatosAdmin() {
 // ==================== ACCIONES ====================
 async function agregarJugada(partido, gl, gv) {
     const monto = VALOR_JUGADA;
-    if (monto > miSaldo) { alert(`Saldo insuficiente: $${miSaldo.toLocaleString()}`); return false; }
-    let r = await callAPI("agregarJugada", { partido: partido, marcador: `${gl} - ${gv}`, monto: monto });
+    
+    // 1. Verificar que el partido exista en la lista
+    const p = PARTIDOS.find(p => `${p.local} vs ${p.visitante}` === partido);
+    if (!p) {
+        alert("❌ Partido no encontrado.");
+        return false;
+    }
+    
+    // 2. Verificar que el partido NO haya comenzado
+    const ahora = new Date();
+    const fechaPartido = new Date(p.fecha);
+    
+    if (fechaPartido < ahora) {
+        alert(`⏰ Este partido ya comenzó o terminó.\nNo se aceptan más apuestas.`);
+        return false;
+    }
+    
+    // 3. Verificar que falten al menos 45 MINUTOS para el inicio (cambio importante)
+    const minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
+    if (minutosRestantes < 45 && minutosRestantes > 0) {
+        alert(`⚠️ Faltan solo ${minutosRestantes} minutos para el inicio.\nApuestas cerradas para este partido.`);
+        return false;
+    }
+    
+    // 4. Verificar que el partido no haya sido liquidado previamente
+    if (verificarPartidoLiquidado(p.id)) {
+        alert("❌ Este partido ya fue liquidado. No se aceptan apuestas.");
+        return false;
+    }
+    
+    // 5. Verificar saldo suficiente
+    if (monto > miSaldo) {
+        alert(`Saldo insuficiente: $${miSaldo.toLocaleString()}\nNecesita $${monto.toLocaleString()} para esta jugada.`);
+        return false;
+    }
+    
+    // 6. Verificar que el usuario esté registrado
+    if (!miNombre) {
+        alert("⚠️ Primero regístrese con su nombre.");
+        document.getElementById('modalRegistro').style.display = 'flex';
+        return false;
+    }
+    
+    // ========== REGISTRAR LA JUGADA ==========
+    let r = await callAPI("agregarJugada", { 
+        partido: partido, 
+        marcador: `${gl} - ${gv}`, 
+        monto: monto 
+    });
+    
     if (r.success) {
         miSaldo -= monto;
         pozoTotal += monto;
         actualizarDisplay();
         await cargarDatosJugador();
-        alert(`✅ Jugada registrada por $${monto.toLocaleString()}`);
+        
+        const fechaLegible = formatearFecha(p.fecha);
+        alert(`✅ JUGADA REGISTRADA\n\n📅 ${fechaLegible}\n⚽ ${partido}\n🎯 Marcador: ${gl} - ${gv}\n💰 Valor: $${monto.toLocaleString()}\n\n📌 Su saldo actual: $${miSaldo.toLocaleString()}`);
         return true;
+    } else {
+        alert("❌ Error al registrar la jugada. Intente nuevamente.");
+        return false;
     }
-    return false;
 }
 
 async function agregarSolicitud(monto, metodo, comprobante) {
@@ -822,14 +895,61 @@ document.getElementById('btnLiquidarPartido').onclick = async () => {
     let pid = document.getElementById('liquidarPartidoSelect').value;
     if (!pid) { alert("Seleccione un partido"); return; }
     let p = PARTIDOS.find(p => p.id == parseInt(pid));
+    
+    if (verificarPartidoLiquidado(p.id)) {
+        alert("❌ Este partido YA FUE LIQUIDADO. No puede liquidarlo nuevamente.");
+        return;
+    }
+    
     let gl = parseInt(prompt(`Goles de ${p.local}:`, "2"));
     let gv = parseInt(prompt(`Goles de ${p.visitante}:`, "1"));
     if (isNaN(gl) || isNaN(gv)) return;
+    
     if (confirm(`¿Liquidar ${p.local} vs ${p.visitante} ${gl} - ${gv}?`)) {
-        await callAPI("liquidarPartido", { partidoId: pid, golesLocal: gl, golesVisitante: gv });
-        alert(`✅ Partido liquidado: ${gl} - ${gv}`);
+        marcarPartidoComoLiquidado(p.id);
+        
+        const jugadasPendientes = misJugadas.filter(j => 
+            j.partido === `${p.local} vs ${p.visitante}` && j.estado === 'pendiente'
+        );
+        
+        const ganadores = jugadasPendientes.filter(j => {
+            const [golLocal, golVisitante] = j.marcador.split(' - ').map(Number);
+            return golLocal === gl && golVisitante === gv;
+        });
+        
+        if (ganadores.length === 0) {
+            alert(`❌ NADIE ACERTÓ. El pozo de $${pozoTotal.toLocaleString()} se acumula para la próxima.`);
+        } else {
+            const pozoPartido = pozoTotal * 0.9;
+            const gananciaPorJugador = Math.floor(pozoPartido / ganadores.length);
+            alert(`🎉 ${ganadores.length} GANADOR(ES)\n💰 Cada uno recibe: $${gananciaPorJugador.toLocaleString()}`);
+            
+            for (const jugada of misJugadas) {
+                if (jugada.partido === `${p.local} vs ${p.visitante}` && jugada.estado === 'pendiente') {
+                    const esGanador = ganadores.some(g => g.id === jugada.id);
+                    jugada.estado = esGanador ? 'ganada' : 'perdida';
+                    if (esGanador) {
+                        jugada.ganancia = gananciaPorJugador;
+                        if (jugada.nombreJugador === miNombre) {
+                            miSaldo += gananciaPorJugador;
+                        }
+                    }
+                }
+            }
+            
+            localStorage.setItem(`jugadas_${jugadorId}`, JSON.stringify(misJugadas));
+            localStorage.setItem(`saldo_${jugadorId}`, miSaldo);
+        }
+        
         await cargarDatosJugador();
-        await cargarDatosAdmin();
+        cargarPartidosEnSelects();
+        cargarListaPartidos();
+        
+        if (document.getElementById('partidoSelect').value == pid) {
+            actualizarBanderasPartido();
+        }
+        
+        alert(`✅ Partido liquidado: ${p.local} ${gl} - ${gv} ${p.visitante}`);
     }
 };
 
