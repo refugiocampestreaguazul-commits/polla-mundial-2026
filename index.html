@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0a2f1f 0%, #051f12 100%);
             color: #ffffff;
             padding: 20px;
@@ -35,7 +35,7 @@
             padding: 8px 15px;
             border: 1px solid #FFCD00;
             text-align: right;
-            min-width: 180px;
+            min-width: 200px;
         }
         .registro-nombre { font-size: 0.8rem; font-weight: bold; color: #FFCD00; }
         .registro-saldo { font-size: 0.7rem; color: #cce6d4; margin-top: 3px; }
@@ -112,38 +112,31 @@
             padding: 12px; border-radius: 30px; border: none; width: 100%; cursor: pointer;
             font-size: 1rem; margin-top: 15px;
         }
-        .btn-jugar:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-jugar:disabled { opacity: 0.5; cursor: not-allowed; }
+        
         .ranking-list { list-style: none; }
         .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,205,0,0.2); }
         .rank-number { font-weight: bold; width: 30px; color: #FFCD00; }
         .rank-name { flex: 1; margin-left: 10px; }
         .rank-score { font-weight: bold; background: #1e3328; padding: 3px 10px; border-radius: 40px; color: #FFCD00; }
         .top1 .rank-score { background: linear-gradient(135deg, #FFCD00, #d4af37); color: #0033A0; }
-        .partidos-grid { max-height: 350px; overflow-y: auto; }
-        .partido-item { background: #0e2a1c; margin: 6px 0; padding: 10px; border-radius: 16px; border-left: 3px solid #FFCD00; }
+        
+        .partidos-grid, .solicitudes-list, .jugadores-list { max-height: 350px; overflow-y: auto; }
+        .partido-item, .solicitud-item, .jugador-item {
+            background: #0e2a1c; margin: 6px 0; padding: 10px; border-radius: 16px; border-left: 3px solid #FFCD00;
+        }
         .fecha-partido { font-size: 0.65rem; color: #FFCD00; }
         .historial-list { max-height: 250px; overflow-y: auto; }
-        .historial-item { background: #0e2a1c; margin: 6px 0; padding: 10px; border-radius: 16px; font-size: 0.75rem; border-left: 3px solid #FFCD00; }
+        .historial-item {
+            background: #0e2a1c; margin: 6px 0; padding: 10px; border-radius: 16px;
+            font-size: 0.75rem; border-left: 3px solid #FFCD00;
+        }
         .btn-liquidar { background: linear-gradient(135deg, #C8102E, #8b0000); border: none; padding: 12px; border-radius: 40px; width: 100%; cursor: pointer; margin-top: 10px; color: white; }
         .btn-aprobar { background: #0033A0; border: none; padding: 6px 15px; border-radius: 30px; color: white; cursor: pointer; margin-top: 8px; }
         .legal-info { background: rgba(0,0,0,0.3); border-radius: 20px; padding: 12px; margin-top: 20px; font-size: 0.6rem; text-align: center; }
         
-        .publicidad {
-            background: rgba(0,0,0,0.5);
-            border-radius: 20px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        .publicidad-img {
-            max-width: 100%;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
+        .publicidad { background: rgba(0,0,0,0.5); border-radius: 20px; padding: 15px; margin: 20px 0; text-align: center; }
+        .publicidad-img { max-width: 100%; border-radius: 15px; cursor: pointer; transition: transform 0.3s; }
         .publicidad-img:hover { transform: scale(1.02); }
         
         .modal {
@@ -158,10 +151,7 @@
             width: 100%; padding: 12px; margin: 10px 0; border-radius: 30px;
             background: #1e3328; color: white; border: none;
         }
-        .close-modal {
-            background: #FFCD00; border: none; padding: 10px 25px; border-radius: 30px;
-            cursor: pointer; color: #0033A0; font-weight: bold; margin-top: 10px;
-        }
+        .close-modal { background: #FFCD00; border: none; padding: 10px 25px; border-radius: 30px; cursor: pointer; color: #0033A0; font-weight: bold; margin-top: 10px; }
         .tab { display: flex; gap: 8px; margin-bottom: 15px; }
         .tab button { flex: 1; padding: 8px; background: #1e3328; border: none; border-radius: 30px; color: white; cursor: pointer; }
         .tab button.active { background: #FFCD00; color: #0033A0; font-weight: bold; }
@@ -261,7 +251,6 @@
             </div>
             
             <div id="avisoPartido" class="aviso-partido normal">✅ Seleccione un partido para ver información</div>
-            
             <div class="monto-fijo">💰 VALOR DE LA JUGADA: $5,000 COP (FIJO)</div>
             <button id="btnJugar" class="btn-jugar">⚡ JUGAR AHORA</button>
         </div>
@@ -320,7 +309,7 @@
         <p><strong>🔑 Nequi llave: 0091030441</strong></p>
         <p><strong>🏦 Bancolombia: 26269998309</strong></p>
         <p><strong>💚 Nequi: 3103415830</strong></p>
-        <input type="number" id="montoRecarga" placeholder="Monto a recargar">
+        <input type="number" id="montoRecarga" placeholder="Monto a recargar (mínimo $5,000)">
         <select id="metodoRecarga">
             <option value="Nequi llave">🔑 Nequi llave 0091030441</option>
             <option value="Bancolombia">🏦 Bancolombia 26269998309</option>
@@ -345,25 +334,30 @@ if (!jugadorId) {
     localStorage.setItem('polla_user_id', jugadorId);
 }
 
-let miSaldo = 0;
-let pozoTotal = 0;
+// Datos del jugador actual
 let miNombre = localStorage.getItem(`nombre_${jugadorId}`) || '';
 let miWhatsapp = localStorage.getItem(`whatsapp_${jugadorId}`) || '';
 let miCuenta = localStorage.getItem(`cuenta_${jugadorId}`) || '';
+let miSaldo = 0;
 let misJugadas = [];
+let pozoTotal = 0;
 
-// ==================== FUNCIONES AUXILIARES ====================
+// ==================== FUNCIONES PRINCIPALES ====================
 function guardarDatos() {
-    // Guardar jugadores
+    // Guardar saldo y datos del jugador
     let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-    let jugadorExistente = jugadores.find(j => j.id === jugadorId);
-    if (jugadorExistente) {
-        jugadorExistente.nombre = miNombre;
-        jugadorExistente.whatsapp = miWhatsapp;
-        jugadorExistente.cuenta = miCuenta;
-        jugadorExistente.saldo = miSaldo;
-        localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-    } else if (miNombre) {
+    let existe = false;
+    for (let i = 0; i < jugadores.length; i++) {
+        if (jugadores[i].id === jugadorId) {
+            jugadores[i].nombre = miNombre;
+            jugadores[i].whatsapp = miWhatsapp;
+            jugadores[i].cuenta = miCuenta;
+            jugadores[i].saldo = miSaldo;
+            existe = true;
+            break;
+        }
+    }
+    if (!existe && miNombre) {
         jugadores.push({
             id: jugadorId,
             nombre: miNombre,
@@ -371,26 +365,28 @@ function guardarDatos() {
             cuenta: miCuenta,
             saldo: miSaldo
         });
-        localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
     }
+    localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
     
-    // Guardar pozo
+    // Guardar pozo total
     localStorage.setItem('pozo_total_app', pozoTotal);
     
     // Guardar jugadas
     localStorage.setItem(`jugadas_${jugadorId}`, JSON.stringify(misJugadas));
+    
+    // Actualizar pantalla
+    actualizarPantalla();
 }
 
-function cargarDatosFromLocalStorage() {
+function cargarDatos() {
     // Cargar jugadores
     let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
     let jugador = jugadores.find(j => j.id === jugadorId);
-    
     if (jugador) {
-        miSaldo = jugador.saldo || 0;
         miNombre = jugador.nombre || '';
         miWhatsapp = jugador.whatsapp || '';
         miCuenta = jugador.cuenta || '';
+        miSaldo = jugador.saldo || 0;
     } else {
         miSaldo = 0;
     }
@@ -401,75 +397,68 @@ function cargarDatosFromLocalStorage() {
     // Cargar jugadas
     misJugadas = JSON.parse(localStorage.getItem(`jugadas_${jugadorId}`) || '[]');
     
-    actualizarDisplay();
-    renderizarRanking();
-    renderizarHistorial();
+    actualizarPantalla();
 }
 
-function actualizarDisplay() {
+function actualizarPantalla() {
+    // Actualizar nombre y saldo
     document.getElementById('nombreDisplay').innerHTML = miNombre ? `👤 ${miNombre}` : `🔓 Sin registrar`;
-    document.getElementById('saldoDisplayRegistro').innerHTML = `💰 Mi saldo: $${(miSaldo || 0).toLocaleString()}`;
+    document.getElementById('saldoDisplayRegistro').innerHTML = `💰 Saldo: $${(miSaldo || 0).toLocaleString()}`;
     document.getElementById('pozoTotalDisplay').innerHTML = `$ ${(pozoTotal || 0).toLocaleString()}`;
-}
-
-function renderizarRanking() {
-    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-    let rank = [...jugadores];
-    rank.sort((a, b) => (b.saldo || 0) - (a.saldo || 0));
     
-    let html = '';
-    rank.slice(0, 20).forEach((u, i) => {
-        html += `<li class="ranking-item ${i === 0 ? 'top1' : ''}">
-                    <span class="rank-number">${i + 1}</span>
-                    <span class="rank-name">${i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}${u.nombre || 'Anónimo'}</span>
-                    <span class="rank-score">$${(u.saldo || 0).toLocaleString()}</span>
-                </li>`;
+    // Actualizar ranking
+    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let ranking = [...jugadores];
+    ranking.sort((a, b) => (b.saldo || 0) - (a.saldo || 0));
+    
+    let rankingHtml = '';
+    ranking.slice(0, 20).forEach((u, i) => {
+        let medalla = i === 0 ? '🥇 ' : (i === 1 ? '🥈 ' : (i === 2 ? '🥉 ' : ''));
+        rankingHtml += `<li class="ranking-item ${i === 0 ? 'top1' : ''}">
+                            <span class="rank-number">${i + 1}</span>
+                            <span class="rank-name">${medalla} ${u.nombre || 'Anónimo'}</span>
+                            <span class="rank-score">$${(u.saldo || 0).toLocaleString()}</span>
+                        </li>`;
     });
-    document.getElementById('rankingList').innerHTML = html || "<li>Sin datos</li>";
-}
-
-function renderizarHistorial() {
-    let html = '';
-    if (misJugadas.length) {
+    document.getElementById('rankingList').innerHTML = rankingHtml || "<li>Sin datos</li>";
+    
+    // Actualizar historial de jugadas
+    let historialHtml = '';
+    if (misJugadas.length > 0) {
         [...misJugadas].reverse().forEach(j => {
-            html += `<div class="historial-item">
-                        <strong>${j.partido}</strong><br>
-                        ${j.marcador} | $${parseInt(j.monto).toLocaleString()}<br>
-                        ${j.estado === 'ganada' ? '✅ GANADA' : j.estado === 'perdida' ? '❌ PERDIDA' : '⏳ PENDIENTE'}
-                        ${j.ganancia ? `| Ganó: $${parseInt(j.ganancia).toLocaleString()}` : ''}
-                    </div>`;
+            let estado = j.estado === 'ganada' ? '✅ GANADA' : (j.estado === 'perdida' ? '❌ PERDIDA' : '⏳ PENDIENTE');
+            historialHtml += `<div class="historial-item">
+                                <strong>${j.partido}</strong><br>
+                                ${j.marcador} | $${parseInt(j.monto).toLocaleString()}<br>
+                                ${estado} ${j.ganancia ? `| Ganó: $${parseInt(j.ganancia).toLocaleString()}` : ''}
+                            </div>`;
         });
     } else {
-        html = "No hay jugadas";
+        historialHtml = "No hay jugadas registradas";
     }
-    document.getElementById('historialContainer').innerHTML = html;
+    document.getElementById('historialContainer').innerHTML = historialHtml;
 }
 
-function marcarPartidoComoLiquidado(partidoId) { 
-    localStorage.setItem(`liquidado_${partidoId}`, 'true'); 
-}
-
-function verificarPartidoLiquidado(partidoId) { 
-    return localStorage.getItem(`liquidado_${partidoId}`) === 'true'; 
-}
-
-// ==================== MODAL REGISTRO ====================
+// ==================== REGISTRO ====================
 document.getElementById('btnAbrirRegistro').onclick = () => {
     document.getElementById('registroNombre').value = miNombre;
     document.getElementById('registroWhatsapp').value = miWhatsapp;
     document.getElementById('registroCuenta').value = miCuenta;
     document.getElementById('modalRegistro').style.display = 'flex';
 };
-document.getElementById('btnCerrarRegistro').onclick = () => document.getElementById('modalRegistro').style.display = 'none';
-document.getElementById('btnGuardarRegistro').onclick = async () => {
+
+document.getElementById('btnCerrarRegistro').onclick = () => {
+    document.getElementById('modalRegistro').style.display = 'none';
+};
+
+document.getElementById('btnGuardarRegistro').onclick = () => {
     let nombre = document.getElementById('registroNombre').value.trim();
     let whatsapp = document.getElementById('registroWhatsapp').value.trim();
     let cuenta = document.getElementById('registroCuenta').value.trim();
     
-    if (!nombre || !whatsapp || !cuenta) { 
-        alert("Complete todos los campos"); 
-        return; 
-    }
+    if (!nombre) { alert("Ingrese su nombre"); return; }
+    if (!whatsapp) { alert("Ingrese su número de WhatsApp"); return; }
+    if (!cuenta) { alert("Ingrese su número de cuenta para depósito"); return; }
     
     miNombre = nombre;
     miWhatsapp = whatsapp;
@@ -480,14 +469,261 @@ document.getElementById('btnGuardarRegistro').onclick = async () => {
     localStorage.setItem(`cuenta_${jugadorId}`, cuenta);
     
     guardarDatos();
-    actualizarDisplay();
-    renderizarRanking();
-    
     document.getElementById('modalRegistro').style.display = 'none';
     alert(`✅ Registro completado: ${nombre}`);
 };
 
-// ==================== BANDERAS ====================
+// ==================== ADMIN ====================
+document.getElementById('btnMostrarAdmin').onclick = () => {
+    document.getElementById('loginAdminModal').style.display = 'flex';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('errorLoginAdmin').innerHTML = '';
+};
+
+document.getElementById('btnCerrarLogin').onclick = () => {
+    document.getElementById('loginAdminModal').style.display = 'none';
+};
+
+document.getElementById('btnVerificarAdmin').onclick = () => {
+    let pass = document.getElementById('adminPassword').value;
+    if (pass === ADMIN_PASSWORD) {
+        esAdmin = true;
+        document.getElementById('loginAdminModal').style.display = 'none';
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        alert("✅ Modo administrador activado");
+        cargarPanelAdmin();
+    } else {
+        document.getElementById('errorLoginAdmin').innerHTML = "❌ Contraseña incorrecta";
+    }
+};
+
+document.getElementById('btnCerrarSesionAdmin').onclick = () => {
+    esAdmin = false;
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab-btn[data-tab="jugada"]').classList.add('active');
+    document.getElementById('tab-jugada').classList.add('active');
+    alert("✅ Sesión de administrador cerrada");
+};
+
+function cargarPanelAdmin() {
+    if (!esAdmin) return;
+    
+    // Cargar solicitudes pendientes
+    let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    let pendientes = solicitudes.filter(s => s.estado === 'pendiente');
+    
+    let html = '';
+    if (pendientes.length > 0) {
+        pendientes.forEach(s => {
+            html += `<div class="solicitud-item" id="sol_${s.id}">
+                        <strong>👤 ${s.nombre || s.jugadorId}</strong><br>
+                        💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>
+                        📄 Comprobante: ${s.comprobante}<br>
+                        <button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}', ${s.monto}, '${s.jugadorId}')">✅ APROBAR</button>
+                    </div>`;
+        });
+    } else {
+        html = "✅ No hay solicitudes pendientes";
+    }
+    document.getElementById('solicitudesPendientes').innerHTML = html;
+    
+    // Cargar lista de jugadores
+    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let jugadoresHtml = '';
+    jugadores.forEach(j => {
+        jugadoresHtml += `<div class="jugador-item">
+                            <strong>👤 ${j.nombre || 'Sin nombre'}</strong><br>
+                            📱 WhatsApp: ${j.whatsapp || 'No'}<br>
+                            🏦 Cuenta: ${j.cuenta || 'No'}<br>
+                            💰 Saldo: $${(j.saldo || 0).toLocaleString()}
+                        </div>`;
+    });
+    document.getElementById('listaJugadores').innerHTML = jugadoresHtml || "No hay jugadores registrados";
+    
+    // Llenar select
+    let select = document.getElementById('adminJugadorSelect');
+    select.innerHTML = '<option value="">-- Seleccione jugador --</option>';
+    jugadores.forEach(j => {
+        select.innerHTML += `<option value="${j.id}">${j.nombre} (Saldo: $${(j.saldo || 0).toLocaleString()})</option>`;
+    });
+}
+
+// ==================== SOLICITUDES DE RECARGA ====================
+function agregarSolicitud(monto, metodo, comprobante) {
+    let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    solicitudes.push({
+        id: Date.now(),
+        jugadorId: jugadorId,
+        nombre: miNombre,
+        monto: monto,
+        metodo: metodo,
+        comprobante: comprobante,
+        estado: 'pendiente',
+        fecha: new Date().toISOString()
+    });
+    localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+    alert("✅ Solicitud enviada. Espere aprobación del administrador.");
+}
+
+window.aprobarSolicitud = function(id, monto, jid) {
+    if (!esAdmin) return;
+    
+    // Actualizar solicitud
+    let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    let solicitud = solicitudes.find(s => s.id == id);
+    if (solicitud) {
+        solicitud.estado = 'aprobada';
+        localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+        
+        // Actualizar saldo del jugador
+        let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+        let jugador = jugadores.find(j => j.id === jid);
+        if (jugador) {
+            jugador.saldo = (jugador.saldo || 0) + monto;
+            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+            
+            // Actualizar pozo total
+            let pozo = parseInt(localStorage.getItem('pozo_total_app') || '0');
+            pozo += monto;
+            localStorage.setItem('pozo_total_app', pozo);
+            
+            // Si es el jugador actual, actualizar variables
+            if (jid === jugadorId) {
+                miSaldo = jugador.saldo;
+                pozoTotal = pozo;
+                guardarDatos();
+                actualizarPantalla();
+            }
+            
+            alert(`✅ Recarga aprobada: $${monto.toLocaleString()}\n💰 Nuevo saldo de ${jugador.nombre}: $${jugador.saldo.toLocaleString()}`);
+            
+            // Recargar panel admin
+            cargarPanelAdmin();
+            actualizarPantalla();
+        }
+    }
+};
+
+// ==================== APUESTAS ====================
+function agregarJugada(partido, golesLocal, golesVisitante) {
+    if (!miNombre) {
+        alert("⚠️ Primero regístrese");
+        document.getElementById('modalRegistro').style.display = 'flex';
+        return false;
+    }
+    
+    if (VALOR_JUGADA > miSaldo) {
+        alert(`❌ Saldo insuficiente. Su saldo: $${miSaldo.toLocaleString()}`);
+        return false;
+    }
+    
+    // Validar tiempo del partido (45 minutos antes)
+    let p = partidos.find(p => `${p.local} vs ${p.visitante}` === partido);
+    if (p) {
+        let ahora = new Date();
+        let fechaPartido = new Date(p.fecha);
+        let minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
+        
+        if (fechaPartido < ahora) {
+            alert("⏰ Este partido ya comenzó");
+            return false;
+        }
+        if (minutosRestantes < 45 && minutosRestantes > 0) {
+            alert(`⚠️ Faltan ${minutosRestantes} minutos. Apuestas cerradas.`);
+            return false;
+        }
+    }
+    
+    // Registrar jugada
+    misJugadas.push({
+        id: Date.now(),
+        partido: partido,
+        marcador: `${golesLocal} - ${golesVisitante}`,
+        monto: VALOR_JUGADA,
+        estado: 'pendiente',
+        fecha: new Date().toISOString()
+    });
+    
+    // Actualizar saldo y pozo
+    miSaldo -= VALOR_JUGADA;
+    pozoTotal += VALOR_JUGADA;
+    
+    guardarDatos();
+    alert(`✅ Jugada registrada: ${partido} ${golesLocal}-${golesVisitante} por $${VALOR_JUGADA.toLocaleString()}`);
+    return true;
+}
+
+// ==================== ACTIVAR SALDO MANUAL ====================
+document.getElementById('btnActivarSaldo').onclick = () => {
+    if (!esAdmin) {
+        alert("No tiene permisos de administrador");
+        return;
+    }
+    
+    let jugadorIdSel = document.getElementById('adminJugadorSelect').value;
+    let monto = parseInt(document.getElementById('adminMontoActivar').value);
+    
+    if (!jugadorIdSel) {
+        alert("Seleccione un jugador");
+        return;
+    }
+    if (isNaN(monto) || monto < 5000) {
+        alert("Monto mínimo: $5,000");
+        return;
+    }
+    
+    if (confirm(`¿Verificó que el jugador consignó $${monto.toLocaleString()}?`)) {
+        let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+        let jugador = jugadores.find(j => j.id === jugadorIdSel);
+        
+        if (jugador) {
+            jugador.saldo = (jugador.saldo || 0) + monto;
+            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+            
+            let pozo = parseInt(localStorage.getItem('pozo_total_app') || '0');
+            pozo += monto;
+            localStorage.setItem('pozo_total_app', pozo);
+            
+            if (jugadorIdSel === jugadorId) {
+                miSaldo = jugador.saldo;
+                pozoTotal = pozo;
+                guardarDatos();
+                actualizarPantalla();
+            }
+            
+            alert(`✅ Saldo activado: $${monto.toLocaleString()} para ${jugador.nombre}`);
+            cargarPanelAdmin();
+            actualizarPantalla();
+        }
+        
+        document.getElementById('adminMontoActivar').value = '';
+    }
+};
+
+// ==================== WHATSAPP ====================
+document.getElementById('btnWhatsappCompartir').onclick = () => {
+    let msg = `🏆 LA POLLA MUNDIAL 2026 🏆\n\n¡Te invito a participar!\n✅ Acierta los marcadores\n✅ $5,000 por jugada\n\n📱 ${SITIO_URL}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+};
+
+document.getElementById('btnSoporteWhatsapp').onclick = () => {
+    let msg = `🆘 SOPORTE\nHola, soy ${miNombre || 'un jugador'} y tengo una consulta.`;
+    window.open(`https://wa.me/57${miWhatsapp || '3000000000'}?text=${encodeURIComponent(msg)}`, '_blank');
+};
+
+document.getElementById('btnCobrarWhatsapp').onclick = () => {
+    let total = misJugadas.filter(j => j.estado === 'ganada').reduce((s, j) => s + (parseInt(j.ganancia) || 0), 0);
+    if (total === 0) {
+        alert("No hay ganancias para cobrar");
+        return;
+    }
+    let msg = `🏆 COBRO POLLA MUNDIAL 2026 🏆\n\n👤 Nombre: ${miNombre}\n📱 WhatsApp: ${miWhatsapp}\n🏦 Cuenta: ${miCuenta}\n💰 Total: $${total.toLocaleString()} COP`;
+    window.open(`https://wa.me/57${adminNumero || '3000000000'}?text=${encodeURIComponent(msg)}`, '_blank');
+};
+
+// ==================== BANDERAS Y PARTIDOS ====================
 const banderasMap = {
     "🇲🇽 México":"🇲🇽","🇿🇦 Sudáfrica":"🇿🇦","🇰🇷 Corea del Sur":"🇰🇷","🇨🇿 República Checa":"🇨🇿",
     "🇨🇦 Canadá":"🇨🇦","🇧🇦 Bosnia":"🇧🇦","🇶🇦 Catar":"🇶🇦","🇨🇭 Suiza":"🇨🇭",
@@ -504,17 +740,16 @@ const banderasMap = {
 };
 
 function formatearFecha(fechaISO) {
-    const fecha = new Date(fechaISO);
-    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    const h = fecha.getHours(), m = fecha.getMinutes().toString().padStart(2,'0');
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h % 12 || 12;
-    return `${dias[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]} ${h12}:${m} ${ampm}`;
+    let f = new Date(fechaISO);
+    let meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    let dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    let h = f.getHours(), m = f.getMinutes().toString().padStart(2,'0');
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    let h12 = h % 12 || 12;
+    return `${dias[f.getDay()]} ${f.getDate()} ${meses[f.getMonth()]} ${h12}:${m} ${ampm}`;
 }
 
-// ==================== PARTIDOS ====================
-const PARTIDOS = [
+const partidos = [
     { id: 1, fecha: "2026-06-11 14:00", local: "🇲🇽 México", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
     { id: 2, fecha: "2026-06-11 21:00", local: "🇰🇷 Corea del Sur", visitante: "🇨🇿 República Checa", fase: "Grupo A" },
     { id: 3, fecha: "2026-06-18 13:00", local: "🇨🇿 República Checa", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
@@ -618,52 +853,69 @@ const PARTIDOS = [
     { id: 101, fecha: "2026-07-24 14:00", local: "🏆 Perdedor Semifinal 1", visitante: "🏆 Perdedor Semifinal 2", fase: "Tercer Lugar" },
     { id: 102, fecha: "2026-07-25 15:00", local: "🏆 Ganador Semifinal 1", visitante: "🏆 Ganador Semifinal 2", fase: "FINAL" }
 ];
-PARTIDOS.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+function cargarPartidosSelect() {
+    let select = document.getElementById('partidoSelect');
+    let selectLiquidar = document.getElementById('liquidarPartidoSelect');
+    select.innerHTML = '<option value="">-- Seleccione un partido --</option>';
+    if (selectLiquidar) selectLiquidar.innerHTML = '<option value="">-- Seleccione partido --</option>';
+    
+    partidos.forEach(p => {
+        let f = formatearFecha(p.fecha);
+        select.innerHTML += `<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
+        if (selectLiquidar) selectLiquidar.innerHTML += `<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
+    });
+}
+
+function cargarListaPartidos() {
+    let html = '';
+    partidos.forEach(p => {
+        let f = formatearFecha(p.fecha);
+        html += `<div class="partido-item"><div class="fecha-partido">📅 ${f} | ${p.fase}</div><strong>${p.local} vs ${p.visitante}</strong></div>`;
+    });
+    document.getElementById('listaPartidos').innerHTML = html;
+}
 
 function actualizarBanderasPartido() {
-    const select = document.getElementById('partidoSelect');
-    const selectedId = select.value;
-    if (!selectedId) return;
-    const partido = PARTIDOS.find(p => p.id == parseInt(selectedId));
-    if (!partido) return;
+    let select = document.getElementById('partidoSelect');
+    let id = select.value;
+    if (!id) return;
     
-    const ahora = new Date();
-    const fechaPartido = new Date(partido.fecha);
-    const minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
-    const horasRestantes = Math.floor(minutosRestantes / 60);
+    let p = partidos.find(p => p.id == parseInt(id));
+    if (!p) return;
+    
+    let ahora = new Date();
+    let fechaPartido = new Date(p.fecha);
+    let minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
     
     let mensaje = "", habilitado = true, clase = "normal";
     
-    if (verificarPartidoLiquidado(partido.id)) {
-        mensaje = "⛔ Este partido YA FUE LIQUIDADO";
-        habilitado = false; clase = "advertencia";
-    } else if (fechaPartido < ahora) {
+    if (fechaPartido < ahora) {
         mensaje = "⛔ Este partido YA COMENZÓ";
-        habilitado = false; clase = "advertencia";
+        habilitado = false;
+        clase = "advertencia";
     } else if (minutosRestantes < 45 && minutosRestantes > 0) {
         mensaje = `⚠️ Faltan ${minutosRestantes} minutos. Apuestas cerradas.`;
-        habilitado = false; clase = "advertencia";
-    } else if (horasRestantes < 24 && horasRestantes > 0) {
-        mensaje = `✅ Partido en ${horasRestantes} horas. Puede apostar (hasta 45 min antes).`;
-        habilitado = true; clase = "exito";
-    } else {
-        mensaje = `✅ Partido en ${Math.floor(horasRestantes/24)} días. Puede apostar.`;
-        habilitado = true; clase = "exito";
+        habilitado = false;
+        clase = "advertencia";
+    } else if (minutosRestantes > 0) {
+        mensaje = `✅ Partido en ${Math.floor(minutosRestantes/60)} horas. Puede apostar (hasta 45 min antes).`;
+        habilitado = true;
+        clase = "exito";
     }
     
-    const aviso = document.getElementById('avisoPartido');
+    let aviso = document.getElementById('avisoPartido');
     aviso.innerHTML = mensaje;
     aviso.className = `aviso-partido ${clase}`;
     
-    const btnJugar = document.getElementById('btnJugar');
-    btnJugar.disabled = !habilitado;
-    btnJugar.style.opacity = habilitado ? '1' : '0.5';
-    btnJugar.style.cursor = habilitado ? 'pointer' : 'not-allowed';
+    let btn = document.getElementById('btnJugar');
+    btn.disabled = !habilitado;
+    btn.style.opacity = habilitado ? '1' : '0.5';
     
-    const texto = select.options[select.selectedIndex]?.text || "";
-    const partes = texto.split(" | ");
+    let texto = select.options[select.selectedIndex]?.text || "";
+    let partes = texto.split(" | ");
     if (partes.length >= 4) {
-        const equipos = partes[3].split(" vs ");
+        let equipos = partes[3].split(" vs ");
         if (equipos.length >= 2) {
             document.getElementById('banderaLocal').innerHTML = banderasMap[equipos[0].trim()] || "🏆";
             document.getElementById('nombreLocal').innerHTML = equipos[0].trim();
@@ -672,349 +924,55 @@ function actualizarBanderasPartido() {
         }
     }
 }
-document.getElementById('partidoSelect').onchange = actualizarBanderasPartido;
-
-// ==================== WHATSAPP ====================
-document.getElementById('btnWhatsappCompartir').onclick = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(`🏆 LA POLLA MUNDIAL 2026 🏆\n\n¡Te invito a participar!\n✅ Acierta los marcadores\n✅ $5,000 por jugada\n\n📱 ${SITIO_URL}`)}`,'_blank');
-};
-document.getElementById('btnSoporteWhatsapp').onclick = () => {
-    window.open(`https://wa.me/57${miWhatsapp||'3000000000'}?text=${encodeURIComponent("🆘 SOPORTE\nHola, soy "+miNombre)}`,'_blank');
-};
-document.getElementById('btnCobrarWhatsapp').onclick = () => {
-    let total = misJugadas.filter(j=>j.estado==='ganada').reduce((s,j)=>s+(parseInt(j.ganancia)||0),0);
-    if(total===0){alert("No hay ganancias para cobrar");return;}
-    window.open(`https://wa.me/57${adminNumero||'3000000000'}?text=${encodeURIComponent(`🏆 COBRO\n👤 ${miNombre}\n📱 ${miWhatsapp}\n🏦 ${miCuenta}\n💰 $${total.toLocaleString()}`)}`,'_blank');
-};
-
-// ==================== ADMIN ====================
-document.getElementById('btnMostrarAdmin').onclick=()=>document.getElementById('loginAdminModal').style.display='flex';
-document.getElementById('btnCerrarLogin').onclick=()=>document.getElementById('loginAdminModal').style.display='none';
-document.getElementById('btnVerificarAdmin').onclick=async()=>{
-    if(document.getElementById('adminPassword').value===ADMIN_PASSWORD){
-        esAdmin=true;
-        document.getElementById('loginAdminModal').style.display='none';
-        document.querySelectorAll('.admin-only').forEach(el=>el.style.display='block');
-        alert("✅ Modo administrador activado");
-        await cargarDatosAdmin();
-    }else document.getElementById('errorLoginAdmin').innerText="❌ Contraseña incorrecta";
-};
-
-document.getElementById('btnCerrarSesionAdmin').onclick = () => {
-    esAdmin = false;
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelector('.tab-btn[data-tab="jugada"]').classList.add('active');
-    document.getElementById('tab-jugada').classList.add('active');
-    alert("✅ Sesión de administrador cerrada");
-};
-
-// ==================== ADMIN DATA ====================
-async function cargarDatosAdmin() {
-    if(!esAdmin) return;
-    
-    // Cargar solicitudes pendientes
-    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
-    const pendientes = solicitudes.filter(s => s.estado === 'pendiente');
-    
-    let solicitudesHtml = '';
-    if(pendientes.length){
-        pendientes.forEach(s => {
-            solicitudesHtml += `<div class="solicitud-item" id="solicitud_${s.id}">
-                        <strong>👤 ${s.nombre || s.jugadorId}</strong><br>
-                        💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>
-                        📄 Comprobante: ${s.comprobante}<br>
-                        <button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}', ${s.monto}, '${s.jugadorId}')">✅ APROBAR</button>
-                    </div>`;
-        });
-    } else {
-        solicitudesHtml = "✅ No hay solicitudes pendientes";
-    }
-    document.getElementById('solicitudesPendientes').innerHTML = solicitudesHtml;
-    
-    // Cargar lista de jugadores
-    const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-    let jugadoresHtml = '';
-    jugadores.forEach(j => {
-        jugadoresHtml += `<div class="jugador-item">
-                            <strong>👤 ${j.nombre || 'Sin nombre'}</strong><br>
-                            📱 WhatsApp: ${j.whatsapp || 'No registrado'}<br>
-                            🏦 Cuenta: ${j.cuenta || 'No registrada'}<br>
-                            💰 Saldo: $${(j.saldo || 0).toLocaleString()}
-                        </div>`;
-    });
-    document.getElementById('listaJugadores').innerHTML = jugadoresHtml || "No hay jugadores registrados";
-    
-    // Llenar select para activar saldo manual
-    let sel = document.getElementById('adminJugadorSelect');
-    sel.innerHTML = '<option value="">-- Seleccione jugador --</option>';
-    jugadores.forEach(j => {
-        sel.innerHTML += `<option value="${j.id}">${j.nombre} (Saldo: $${(j.saldo || 0).toLocaleString()})</option>`;
-    });
-    
-    // Actualizar pozo
-    const pozo = parseInt(localStorage.getItem('pozo_total_app') || '0');
-    document.getElementById('pozoTotalDisplay').innerHTML = `$ ${pozo.toLocaleString()}`;
-}
-
-// ==================== APROBAR SOLICITUD ====================
-window.aprobarSolicitud = function(id, monto, jid) {
-    if (!esAdmin) {
-        alert("No tiene permisos de administrador");
-        return;
-    }
-    
-    console.log("Aprobando solicitud:", id, "Monto:", monto, "Jugador:", jid);
-    
-    // Obtener datos actuales
-    let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
-    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-    let pozoActual = parseInt(localStorage.getItem('pozo_total_app') || '0');
-    
-    // Buscar la solicitud
-    const solicitud = solicitudes.find(s => s.id == id);
-    if (!solicitud) {
-        alert("❌ Solicitud no encontrada");
-        return;
-    }
-    
-    // Marcar como aprobada
-    solicitud.estado = 'aprobada';
-    localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
-    
-    // Actualizar saldo del jugador
-    let jugador = jugadores.find(j => j.id === jid);
-    if (jugador) {
-        jugador.saldo = (jugador.saldo || 0) + monto;
-        localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-        
-        // Actualizar pozo total
-        pozoActual += monto;
-        localStorage.setItem('pozo_total_app', pozoActual);
-        
-        // Si es el jugador actual, actualizar variables
-        if (jid === jugadorId) {
-            miSaldo = jugador.saldo;
-            pozoTotal = pozoActual;
-            actualizarDisplay();
-            renderizarRanking();
-        }
-        
-        alert(`✅ Recarga aprobada: $${monto.toLocaleString()}\n💰 Nuevo saldo de ${jugador.nombre}: $${jugador.saldo.toLocaleString()}`);
-        
-        // Recargar panel admin
-        cargarDatosAdmin();
-        renderizarRanking();
-    } else {
-        alert("❌ Jugador no encontrado");
-    }
-};
-
-// ==================== SOLICITAR RECARGA ====================
-async function agregarSolicitud(monto, metodo, comprobante) {
-    let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
-    solicitudes.push({
-        id: Date.now(),
-        jugadorId: jugadorId,
-        nombre: miNombre,
-        monto: monto,
-        metodo: metodo,
-        comprobante: comprobante,
-        estado: 'pendiente',
-        fecha: new Date().toISOString()
-    });
-    localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
-    alert("✅ Solicitud enviada. Espere aprobación del administrador.");
-}
-
-// ==================== AGREGAR JUGADA ====================
-async function agregarJugada(partido, gl, gv) {
-    const p = PARTIDOS.find(p => `${p.local} vs ${p.visitante}` === partido);
-    if (!p) { alert("❌ Partido no encontrado."); return false; }
-    
-    const ahora = new Date();
-    const fechaPartido = new Date(p.fecha);
-    
-    if (fechaPartido < ahora) { alert("⏰ Este partido ya comenzó."); return false; }
-    
-    const minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
-    if (minutosRestantes < 45 && minutosRestantes > 0) { alert(`⚠️ Faltan ${minutosRestantes} minutos. Apuestas cerradas.`); return false; }
-    
-    if (verificarPartidoLiquidado(p.id)) { alert("❌ Partido ya liquidado."); return false; }
-    
-    if (VALOR_JUGADA > miSaldo) { alert(`Saldo insuficiente: $${miSaldo.toLocaleString()}`); return false; }
-    
-    if (!miNombre) { alert("⚠️ Regístrese primero."); document.getElementById('modalRegistro').style.display = 'flex'; return false; }
-    
-    // Registrar jugada
-    let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${jugadorId}`) || '[]');
-    jugadasUser.push({
-        id: Date.now(),
-        partido: partido,
-        marcador: `${gl} - ${gv}`,
-        monto: VALOR_JUGADA,
-        estado: 'pendiente',
-        fecha: new Date().toISOString()
-    });
-    localStorage.setItem(`jugadas_${jugadorId}`, JSON.stringify(jugadasUser));
-    
-    // Actualizar saldo y pozo
-    miSaldo -= VALOR_JUGADA;
-    pozoTotal += VALOR_JUGADA;
-    
-    guardarDatos();
-    actualizarDisplay();
-    renderizarHistorial();
-    renderizarRanking();
-    
-    alert(`✅ JUGADA REGISTRADA\n⚽ ${partido}\n🎯 ${gl}-${gv}\n💰 $${VALOR_JUGADA.toLocaleString()}`);
-    return true;
-}
-
-// ==================== ACTIVAR SALDO MANUAL ====================
-async function activarSaldoManual(jid, monto) {
-    if (!esAdmin) return;
-    
-    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-    let jugador = jugadores.find(j => j.id === jid);
-    
-    if (jugador) {
-        jugador.saldo = (jugador.saldo || 0) + monto;
-        localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-        
-        let pozoActual = parseInt(localStorage.getItem('pozo_total_app') || '0');
-        pozoActual += monto;
-        localStorage.setItem('pozo_total_app', pozoActual);
-        
-        if (jid === jugadorId) {
-            miSaldo = jugador.saldo;
-            pozoTotal = pozoActual;
-            actualizarDisplay();
-        }
-        
-        alert(`✅ Saldo activado: $${monto.toLocaleString()} para ${jugador.nombre}`);
-        cargarDatosAdmin();
-        renderizarRanking();
-    }
-}
-
-// ==================== UI ====================
-function cargarPartidosEnSelects(){
-    let sel = document.getElementById('partidoSelect');
-    let liq = document.getElementById('liquidarPartidoSelect');
-    sel.innerHTML = '<option value="">-- Seleccione un partido --</option>';
-    if(liq) liq.innerHTML = '<option value="">-- Seleccione partido --</option>';
-    
-    PARTIDOS.forEach(p => {
-        let f = formatearFecha(p.fecha);
-        sel.innerHTML += `<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
-        if(liq) liq.innerHTML += `<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
-    });
-}
-
-function cargarListaPartidos(){
-    let html = '';
-    PARTIDOS.forEach(p => {
-        html += `<div class="partido-item"><div class="fecha-partido">📅 ${formatearFecha(p.fecha)} | ${p.fase}</div><strong>${p.local} vs ${p.visitante}</strong></div>`;
-    });
-    document.getElementById('listaPartidos').innerHTML = html;
-}
 
 // ==================== EVENTOS ====================
-document.getElementById('btnJugar').onclick = async () => {
-    if(!miNombre){
-        alert("⚠️ Primero regístrese");
-        document.getElementById('modalRegistro').style.display = 'flex';
-        return;
-    }
+document.getElementById('partidoSelect').onchange = actualizarBanderasPartido;
+
+document.getElementById('btnJugar').onclick = () => {
     let pid = document.getElementById('partidoSelect').value;
-    if(!pid){ alert("Seleccione un partido"); return; }
-    let p = PARTIDOS.find(p => p.id == parseInt(pid));
+    if (!pid) { alert("Seleccione un partido"); return; }
+    let p = partidos.find(p => p.id == parseInt(pid));
     let gl = parseInt(document.getElementById('golesLocal').value) || 0;
     let gv = parseInt(document.getElementById('golesVisitante').value) || 0;
-    await agregarJugada(`${p.local} vs ${p.visitante}`, gl, gv);
+    agregarJugada(`${p.local} vs ${p.visitante}`, gl, gv);
     document.getElementById('golesLocal').value = 0;
     document.getElementById('golesVisitante').value = 0;
 };
 
-let modalRecarga = document.getElementById('modalRecarga');
 document.getElementById('btnRecarga').onclick = () => {
-    if(!miNombre){ alert("⚠️ Primero regístrese"); document.getElementById('modalRegistro').style.display = 'flex'; return; }
-    modalRecarga.style.display = 'flex';
+    if (!miNombre) {
+        alert("⚠️ Primero regístrese");
+        document.getElementById('modalRegistro').style.display = 'flex';
+        return;
+    }
+    document.getElementById('modalRecarga').style.display = 'flex';
 };
 
-document.querySelectorAll('.close-modal').forEach(btn => {
-    btn.onclick = () => {
-        modalRecarga.style.display = 'none';
-        document.getElementById('loginAdminModal').style.display = 'none';
-        document.getElementById('modalRegistro').style.display = 'none';
-    };
-});
-
-document.getElementById('btnSolicitarRecarga').onclick = async () => {
+document.getElementById('btnSolicitarRecarga').onclick = () => {
     let monto = parseInt(document.getElementById('montoRecarga').value);
     let metodo = document.getElementById('metodoRecarga').value;
     let comprobante = document.getElementById('comprobanteRecarga').value.trim();
     
-    if(isNaN(monto) || monto < 5000){ alert("Monto mínimo: $5,000"); return; }
-    if(!comprobante){ alert("Ingrese el comprobante"); return; }
+    if (isNaN(monto) || monto < 5000) { alert("Monto mínimo: $5,000"); return; }
+    if (!comprobante) { alert("Ingrese el comprobante"); return; }
     
-    await agregarSolicitud(monto, metodo, comprobante);
-    modalRecarga.style.display = 'none';
+    agregarSolicitud(monto, metodo, comprobante);
+    document.getElementById('modalRecarga').style.display = 'none';
     document.getElementById('montoRecarga').value = '';
     document.getElementById('comprobanteRecarga').value = '';
 };
 
-document.getElementById('btnActivarSaldo').onclick = async () => {
-    if(!esAdmin){ alert("Sin permisos de administrador"); return; }
-    let jid = document.getElementById('adminJugadorSelect').value;
-    let monto = parseInt(document.getElementById('adminMontoActivar').value);
-    
-    if(!jid){ alert("Seleccione un jugador"); return; }
-    if(isNaN(monto) || monto < 5000){ alert("Monto mínimo: $5,000"); return; }
-    
-    if(confirm(`¿Verificó que el jugador consignó $${monto.toLocaleString()}?`)){
-        await activarSaldoManual(jid, monto);
-        document.getElementById('adminMontoActivar').value = '';
-    }
-};
-
-document.getElementById('btnLiquidarPartido').onclick = async () => {
-    if(!esAdmin){ alert("Sin permisos de administrador"); return; }
+document.getElementById('btnLiquidarPartido').onclick = () => {
+    if (!esAdmin) { alert("Sin permisos de administrador"); return; }
     let pid = document.getElementById('liquidarPartidoSelect').value;
-    if(!pid){ alert("Seleccione un partido"); return; }
-    
-    let p = PARTIDOS.find(p => p.id == parseInt(pid));
-    if(verificarPartidoLiquidado(p.id)){ alert("❌ Este partido YA FUE LIQUIDADO"); return; }
+    if (!pid) { alert("Seleccione un partido"); return; }
+    let p = partidos.find(p => p.id == parseInt(pid));
     
     let gl = parseInt(prompt(`Goles de ${p.local}:`, "2"));
     let gv = parseInt(prompt(`Goles de ${p.visitante}:`, "1"));
-    if(isNaN(gl) || isNaN(gv)) return;
+    if (isNaN(gl) || isNaN(gv)) return;
     
-    if(confirm(`¿Liquidar ${p.local} vs ${p.visitante} ${gl}-${gv}?`)){
-        marcarPartidoComoLiquidado(p.id);
-        
-        // Buscar ganadores
-        let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${jugadorId}`) || '[]');
-        let ganadores = jugadasUser.filter(j => 
-            j.estado === 'pendiente' && 
-            j.partido === `${p.local} vs ${p.visitante}` &&
-            j.marcador === `${gl} - ${gv}`
-        );
-        
-        if(ganadores.length > 0){
-            const pozoPartido = pozoTotal * 0.9;
-            const gananciaPorJugador = Math.floor(pozoPartido / ganadores.length);
-            alert(`🎉 ${ganadores.length} GANADOR(ES)\n💰 Cada uno recibe: $${gananciaPorJugador.toLocaleString()}`);
-        } else {
-            alert(`❌ NADIE ACERTÓ. El pozo se acumula.`);
-        }
-        
-        await cargarDatosJugador();
-        cargarPartidosEnSelects();
-        cargarListaPartidos();
-        if(document.getElementById('partidoSelect').value == pid) actualizarBanderasPartido();
+    if (confirm(`¿Liquidar ${p.local} vs ${p.visitante} ${gl}-${gv}?`)) {
         alert(`✅ Partido liquidado: ${gl}-${gv}`);
     }
 };
@@ -1025,15 +983,23 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-        if(btn.dataset.tab === 'partidos') cargarListaPartidos();
-        if(btn.dataset.tab === 'admin' && esAdmin) cargarDatosAdmin();
+        if (btn.dataset.tab === 'partidos') cargarListaPartidos();
+        if (btn.dataset.tab === 'admin' && esAdmin) cargarPanelAdmin();
+    };
+});
+
+document.querySelectorAll('.close-modal').forEach(btn => {
+    btn.onclick = () => {
+        document.getElementById('modalRecarga').style.display = 'none';
+        document.getElementById('loginAdminModal').style.display = 'none';
+        document.getElementById('modalRegistro').style.display = 'none';
     };
 });
 
 // ==================== INICIALIZAR ====================
-cargarPartidosEnSelects();
+cargarPartidosSelect();
 cargarListaPartidos();
-cargarDatosFromLocalStorage();
+cargarDatos();
 </script>
 </body>
 </html>
