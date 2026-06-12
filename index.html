@@ -450,9 +450,15 @@ function marcarPartidoComoLiquidado(partidoId) { localStorage.setItem(`liquidado
 function verificarPartidoLiquidado(partidoId) { return localStorage.getItem(`liquidado_${partidoId}`) === 'true'; }
 
 function actualizarDisplay() {
+    // Actualizar nombre
     document.getElementById('nombreDisplay').innerHTML = miNombre ? `👤 ${miNombre}` : `🔓 Sin registrar`;
+    
+    // Actualizar saldo del jugador
     document.getElementById('saldoDisplayRegistro').innerHTML = `💰 Mi saldo: $${(miSaldo || 0).toLocaleString()}`;
-    document.getElementById('pozoTotalDisplay').innerHTML = `$ ${(pozoTotal || 0).toLocaleString()}`;
+    
+    // Actualizar pozo total
+    const pozo = parseInt(localStorage.getItem('pozo_total_app') || '0');
+    document.getElementById('pozoTotalDisplay').innerHTML = `$ ${(pozo || 0).toLocaleString()}`;
 }
 actualizarDisplay();
 
@@ -705,55 +711,97 @@ document.getElementById('btnCerrarSesionAdmin').onclick = () => {
 
 // ==================== DATOS ====================
 async function cargarDatosJugador(){
-    let r=await callAPI("obtenerJugador",{id:jugadorId});
-    if(r.success){
-        miSaldo=r.saldo||0; miNombre=r.nombre||miNombre;
-        miWhatsapp=r.whatsapp||miWhatsapp; miCuenta=r.cuenta||miCuenta;
-        actualizarDisplay();
+    // Cargar desde localStorage
+    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let jugador = jugadores.find(j => j.id === jugadorId);
+    
+    if (jugador) {
+        miSaldo = jugador.saldo || 0;
+        miNombre = jugador.nombre || miNombre;
+        miWhatsapp = jugador.whatsapp || miWhatsapp;
+        miCuenta = jugador.cuenta || miCuenta;
     }
-    let jr=await callAPI("obtenerJugadas",{id:jugadorId});
-    if(jr.success){
-        misJugadas=jr.jugadas||[];
-        let html='';
-        if(misJugadas.length){
-            [...misJugadas].reverse().forEach(j=>{
-                html+=`<div class="historial-item"><strong>${j.partido}</strong><br>${j.marcador} | $${parseInt(j.monto).toLocaleString()}<br>${j.estado==='ganada'?'✅ GANADA':j.estado==='perdida'?'❌ PERDIDA':'⏳ PENDIENTE'} ${j.ganancia?`| Ganó: $${parseInt(j.ganancia).toLocaleString()}`:''}</div>`;
-            });
-        }else html="No hay jugadas";
-        document.getElementById('historialContainer').innerHTML=html;
-    }
-    let kr=await callAPI("obtenerRanking");
-    if(kr.success){
-        let rank=kr.ranking||[], html='';
-        rank.slice(0,20).forEach((u,i)=>{
-            html+=`<li class="ranking-item ${i===0?'top1':''}"><span class="rank-number">${i+1}</span><span class="rank-name">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${u.nombre}</span><span class="rank-score">$${(u.saldo||0).toLocaleString()}</span></li>`;
+    
+    // Cargar pozo total
+    pozoTotal = parseInt(localStorage.getItem('pozo_total_app') || '0');
+    
+    // Cargar jugadas
+    misJugadas = JSON.parse(localStorage.getItem(`jugadas_${jugadorId}`) || '[]');
+    
+    // Actualizar ranking
+    let rank = jugadores.map(j => ({ id: j.id, nombre: j.nombre, saldo: j.saldo || 0 }));
+    rank.sort((a, b) => b.saldo - a.saldo);
+    
+    let html = '';
+    rank.slice(0, 20).forEach((u, i) => {
+        html += `<li class="ranking-item ${i === 0 ? 'top1' : ''}">
+                    <span class="rank-number">${i + 1}</span>
+                    <span class="rank-name">${i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}${u.nombre}</span>
+                    <span class="rank-score">$${(u.saldo || 0).toLocaleString()}</span>
+                </li>`;
+    });
+    document.getElementById('rankingList').innerHTML = html || "<li>Sin datos</li>";
+    
+    // Actualizar historial
+    let historialHtml = '';
+    if (misJugadas.length) {
+        [...misJugadas].reverse().forEach(j => {
+            historialHtml += `<div class="historial-item">
+                                <strong>${j.partido}</strong><br>
+                                ${j.marcador} | $${parseInt(j.monto).toLocaleString()}<br>
+                                ${j.estado === 'ganada' ? '✅ GANADA' : j.estado === 'perdida' ? '❌ PERDIDA' : '⏳ PENDIENTE'}
+                                ${j.ganancia ? `| Ganó: $${parseInt(j.ganancia).toLocaleString()}` : ''}
+                              </div>`;
         });
-        document.getElementById('rankingList').innerHTML=html||"<li>Sin datos</li>";
+    } else {
+        historialHtml = "No hay jugadas";
     }
+    document.getElementById('historialContainer').innerHTML = historialHtml;
+    
+    actualizarDisplay();
 }
 
 async function cargarDatosAdmin(){
     if(!esAdmin) return;
-    const solicitudes=JSON.parse(localStorage.getItem('solicitudes_app')||'[]');
-    const pendientes=solicitudes.filter(s=>s.estado==='pendiente');
-    let html='';
+    
+    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    const pendientes = solicitudes.filter(s => s.estado === 'pendiente');
+    let html = '';
     if(pendientes.length){
-        pendientes.forEach(s=>{
-            html+=`<div class="solicitud-item"><strong>${s.nombre||s.jugadorId}</strong><br>💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>📄 ${s.comprobante}<br><button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}',${s.monto},'${s.jugadorId}')">✅ APROBAR</button></div>`;
+        pendientes.forEach(s => {
+            html += `<div class="solicitud-item">
+                        <strong>👤 ${s.nombre || s.jugadorId}</strong><br>
+                        💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>
+                        📄 ${s.comprobante}<br>
+                        <button class="btn-aprobar" onclick="aprobarSolicitud(${s.id}, ${s.monto}, '${s.jugadorId}')">✅ APROBAR</button>
+                    </div>`;
         });
-    }else html="✅ No hay solicitudes pendientes";
-    document.getElementById('solicitudesPendientes').innerHTML=html;
+    } else {
+        html = "✅ No hay solicitudes pendientes";
+    }
+    document.getElementById('solicitudesPendientes').innerHTML = html;
     
-    const jugadores=JSON.parse(localStorage.getItem('jugadores_app')||'[]');
-    let jugadoresHtml='';
-    jugadores.forEach(j=>{
-        jugadoresHtml+=`<div class="jugador-item"><strong>${j.nombre}</strong><br>📱 ${j.whatsapp||'No'}<br>🏆 $${(j.saldo||0).toLocaleString()}</div>`;
+    const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let jugadoresHtml = '';
+    jugadores.forEach(j => {
+        jugadoresHtml += `<div class="jugador-item">
+                            <strong>👤 ${j.nombre}</strong><br>
+                            📱 WhatsApp: ${j.whatsapp || 'No registrado'}<br>
+                            🏦 Cuenta: ${j.cuenta || 'No registrada'}<br>
+                            💰 Saldo: $${(j.saldo || 0).toLocaleString()}
+                          </div>`;
     });
-    document.getElementById('listaJugadores').innerHTML=jugadoresHtml||"No hay jugadores";
+    document.getElementById('listaJugadores').innerHTML = jugadoresHtml || "No hay jugadores registrados";
     
-    let sel=document.getElementById('adminJugadorSelect');
-    sel.innerHTML='<option value="">-- Seleccione --</option>';
-    jugadores.forEach(j=>{sel.innerHTML+=`<option value="${j.id}">${j.nombre}</option>`;});
+    let sel = document.getElementById('adminJugadorSelect');
+    sel.innerHTML = '<option value="">-- Seleccione jugador --</option>';
+    jugadores.forEach(j => {
+        sel.innerHTML += `<option value="${j.id}">${j.nombre} (Saldo: $${(j.saldo || 0).toLocaleString()})</option>`;
+    });
+    
+    // Mostrar pozo actual
+    const pozo = parseInt(localStorage.getItem('pozo_total_app') || '0');
+    document.getElementById('pozoTotalDisplay').innerHTML = `$ ${pozo.toLocaleString()}`;
 }
 
 // ==================== ACCIONES ====================
@@ -786,35 +834,54 @@ async function agregarSolicitud(monto,metodo,comprobante){
 window.aprobarSolicitud = async function(id, monto, jid) {
     if (!esAdmin) return;
     
-    // Actualizar en localStorage
-    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    console.log("Aprobando solicitud:", id, "Monto:", monto, "Jugador:", jid);
+    console.log("Jugador actual ID:", jugadorId);
+    
+    // 1. Obtener datos actuales
+    let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let pozoActual = parseInt(localStorage.getItem('pozo_total_app') || '0');
+    
+    // 2. Buscar la solicitud
     const solicitud = solicitudes.find(s => s.id === id);
-    if (solicitud) {
-        solicitud.estado = 'aprobada';
-        localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+    if (!solicitud) {
+        alert("❌ Solicitud no encontrada");
+        return;
+    }
+    
+    // 3. Marcar como aprobada
+    solicitud.estado = 'aprobada';
+    localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+    
+    // 4. Buscar y actualizar el jugador
+    let jugador = jugadores.find(j => j.id === jid);
+    if (jugador) {
+        // Actualizar saldo del jugador en localStorage
+        jugador.saldo = (jugador.saldo || 0) + monto;
+        localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
         
-        // Actualizar saldo del jugador
-        const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-        let jugador = jugadores.find(j => j.id === jid);
-        if (jugador) {
-            jugador.saldo = (jugador.saldo || 0) + monto;
-            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-            
-            // Actualizar pozo total
-            pozoTotal += monto;
-            localStorage.setItem('pozo_total_app', pozoTotal);
-            
-            // Si es el jugador actual, actualizar variable miSaldo
-            if (jid === jugadorId) {
-                miSaldo = jugador.saldo;
-                actualizarDisplay();
-                await cargarDatosJugador();
-            }
+        // Actualizar pozo total
+        pozoActual += monto;
+        localStorage.setItem('pozo_total_app', pozoActual);
+        
+        console.log("Nuevo saldo del jugador:", jugador.saldo);
+        console.log("Nuevo pozo total:", pozoActual);
+        
+        // 5. ACTUALIZAR VARIABLES GLOBALES DEL JUGADOR ACTUAL
+        if (jid === jugadorId) {
+            miSaldo = jugador.saldo;
+            pozoTotal = pozoActual;
+            actualizarDisplay();
+            console.log("✅ Saldo actualizado en interfaz:", miSaldo);
         }
         
-        alert(`✅ Recarga aprobada: $${monto.toLocaleString()}`);
+        alert(`✅ Recarga aprobada: $${monto.toLocaleString()}\n💰 Nuevo saldo: $${jugador.saldo.toLocaleString()}`);
+        
+        // 6. Recargar datos
         await cargarDatosAdmin();
         await cargarDatosJugador();
+    } else {
+        alert("❌ Jugador no encontrado");
     }
 };
 
