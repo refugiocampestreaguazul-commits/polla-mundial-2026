@@ -298,7 +298,7 @@
         <p>⚖️ Ley 1581/2012 - Protección de datos | Comisión: 10% | Reparto: 90% entre acertadores</p>
         <p>⚠️ Solo mayores de 18 años | Juego responsable | Acumulación si no hay ganadores</p>
         <p>💰 Cada jugada: $5,000 COP | Horarios: Hora Colombia (UTC-5)</p>
-        <p>🔒 Apuestas cierran cuando el partido comienza</p>
+        <p>🔒 Las apuestas se cierran CUANDO EL PARTIDO COMIENZA. No se aceptan apuestas después del inicio.</p>
     </div>
     <div class="footer">104 partidos oficiales | Cada jugada vale $5,000 COP</div>
 </div>
@@ -333,21 +333,33 @@ if (!jugadorId) {
     localStorage.setItem('polla_user_id', jugadorId);
 }
 
+// ==================== LIMPIAR DATOS DE EJEMPLO ====================
+// Eliminar solicitudes de ejemplo pendientes
+let solicitudesExistentes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+if (solicitudesExistentes.length > 0) {
+    // Solo limpiar si hay solicitudes viejas (de ejemplo)
+    let solicitudesFiltradas = solicitudesExistentes.filter(s => {
+        // Mantener solo solicitudes que no sean de hace más de 1 hora (ejemplo)
+        let fechaSolicitud = new Date(s.fecha);
+        let ahora = new Date();
+        let horasDiferencia = (ahora - fechaSolicitud) / (1000 * 60 * 60);
+        return horasDiferencia < 24; // Mantener solo las últimas 24 horas
+    });
+    localStorage.setItem('solicitudes_app', JSON.stringify(solicitudesFiltradas));
+}
+
+// Limpiar jugadores de ejemplo si no tienen nombre válido
+let jugadoresExistentes = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+let jugadoresFiltrados = jugadoresExistentes.filter(j => j.nombre && j.nombre !== 'Jugador Ejemplo' && j.nombre !== 'Anónimo');
+localStorage.setItem('jugadores_app', JSON.stringify(jugadoresFiltrados));
+
 // Datos del jugador actual
 let miNombre = localStorage.getItem(`nombre_${jugadorId}`) || '';
 let miWhatsapp = localStorage.getItem(`whatsapp_${jugadorId}`) || '';
 let miCuenta = localStorage.getItem(`cuenta_${jugadorId}`) || '';
 let miSaldo = 0;
 let misJugadas = [];
-let pozoTotal = 0;
-
-// Limpiar datos de ejemplo si es primera vez
-if (!localStorage.getItem('datos_inicializados')) {
-    localStorage.clear();
-    localStorage.setItem('datos_inicializados', 'true');
-    localStorage.setItem('polla_user_id', jugadorId);
-    console.log("Datos inicializados - Ejemplos eliminados");
-}
+let pozoTotal = parseInt(localStorage.getItem('pozo_total_app') || '0');
 
 // ==================== FUNCIONES PRINCIPALES ====================
 function guardarDatos() {
@@ -631,7 +643,6 @@ function agregarJugada(partido, golesLocal, golesVisitante) {
     if (p) {
         let ahora = new Date();
         let fechaPartido = new Date(p.fecha);
-        let minutosTranscurridos = Math.floor((ahora - fechaPartido) / (1000 * 60));
         
         // Si el partido ya comenzó, NO se puede apostar
         if (ahora > fechaPartido) {
@@ -890,7 +901,6 @@ function actualizarBanderasPartido() {
     
     let ahora = new Date();
     let fechaPartido = new Date(p.fecha);
-    let minutosTranscurridos = Math.floor((ahora - fechaPartido) / (1000 * 60));
     
     let mensaje = "", habilitado = true, clase = "normal";
     
@@ -898,13 +908,14 @@ function actualizarBanderasPartido() {
         mensaje = "⛔ Este partido YA COMENZÓ. No se aceptan más apuestas.";
         habilitado = false;
         clase = "advertencia";
-    } else if ((fechaPartido - ahora) < 1000 * 60 * 45 && (fechaPartido - ahora) > 0) {
-        let minutos = Math.floor((fechaPartido - ahora) / (1000 * 60));
-        mensaje = `⚠️ Faltan ${minutos} minutos para el inicio. ¡Apuesta rápido!`;
-        habilitado = true;
-        clase = "exito";
     } else if (fechaPartido > ahora) {
-        mensaje = `✅ Partido disponible. Puede apostar hasta el inicio del partido.`;
+        let minutosFaltan = Math.floor((fechaPartido - ahora) / (1000 * 60));
+        let horasFaltan = Math.floor(minutosFaltan / 60);
+        if (horasFaltan > 0) {
+            mensaje = `✅ Partido en ${horasFaltan} horas. Puede apostar hasta el inicio del partido.`;
+        } else {
+            mensaje = `✅ Partido en ${minutosFaltan} minutos. Puede apostar hasta el inicio del partido.`;
+        }
         habilitado = true;
         clase = "exito";
     }
