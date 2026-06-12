@@ -698,26 +698,73 @@ async function cargarDatosJugador() {
 
 async function cargarDatosAdmin() {
     if (!esAdmin) return;
+    
+    // 1. Cargar solicitudes de recarga desde la API
     let sr = await callAPI("obtenerSolicitudes");
     if (sr.success) {
         let sol = sr.solicitudes || [], html = '';
         if (sol.length) {
             sol.forEach(s => {
-                html += `<div class="solicitud-item"><strong>${s.nombre || s.jugadorId}</strong><br>$${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>${s.comprobante}<br><button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}',${s.monto},'${s.jugadorId}')">✅ APROBAR</button></div>`;
+                html += `<div class="solicitud-item">
+                            <strong>${s.nombre || s.jugadorId}</strong><br>
+                            💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>
+                            📄 ${s.comprobante}<br>
+                            <button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}',${s.monto},'${s.jugadorId}')">✅ APROBAR</button>
+                         </div>`;
             });
         } else {
             html = "✅ No hay solicitudes pendientes";
         }
         document.getElementById('solicitudesPendientes').innerHTML = html;
     }
+    
+    // 2. Cargar jugadores registrados (de localStorage y API)
+    let jugadoresMap = new Map();
+    
+    // 2a. Obtener jugadores desde la API (ranking)
     let kr = await callAPI("obtenerRanking");
-    if (kr.success) {
-        let rank = kr.ranking || [], html = '';
-        rank.forEach(j => { html += `<div class="jugador-item"><strong>${j.nombre}</strong> | 📱 ${j.whatsapp || 'No'} | 🏆 $${(j.saldo || 0).toLocaleString()}</div>`; });
-        document.getElementById('listaJugadores').innerHTML = html || "No hay jugadores";
-        let sel = document.getElementById('adminJugadorSelect');
-        sel.innerHTML = '<option value="">-- Seleccione --</option>';
-        rank.forEach(j => { sel.innerHTML += `<option value="${j.id}">${j.nombre}</option>`; });
+    if (kr.success && kr.ranking) {
+        kr.ranking.forEach(j => {
+            jugadoresMap.set(j.id, {
+                id: j.id,
+                nombre: j.nombre || "Anónimo",
+                whatsapp: j.whatsapp || "No",
+                saldo: j.saldo || 0
+            });
+        });
+    }
+    
+    // 2b. También buscar jugadores en localStorage (para pruebas)
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('nombre_')) {
+            const id = key.replace('nombre_', '');
+            const nombre = localStorage.getItem(`nombre_${id}`);
+            const whatsapp = localStorage.getItem(`whatsapp_${id}`) || "No";
+            const saldo = parseInt(localStorage.getItem(`saldo_${id}`)) || 0;
+            
+            if (!jugadoresMap.has(id)) {
+                jugadoresMap.set(id, { id, nombre, whatsapp, saldo });
+            }
+        }
+    }
+    
+    // Mostrar lista de jugadores
+    let html = '';
+    for (let jugador of jugadoresMap.values()) {
+        html += `<div class="jugador-item">
+                    <strong>${jugador.nombre}</strong><br>
+                    📱 WhatsApp: ${jugador.whatsapp}<br>
+                    🏆 Saldo: $${(jugador.saldo || 0).toLocaleString()}
+                </div>`;
+    }
+    document.getElementById('listaJugadores').innerHTML = html || "No hay jugadores registrados";
+    
+    // Llenar select para activar saldo manual
+    let sel = document.getElementById('adminJugadorSelect');
+    sel.innerHTML = '<option value="">-- Seleccione jugador --</option>';
+    for (let jugador of jugadoresMap.values()) {
+        sel.innerHTML += `<option value="${jugador.id}">${jugador.nombre}</option>`;
     }
 }
 
