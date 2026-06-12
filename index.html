@@ -512,20 +512,46 @@ document.getElementById('btnMostrarAdmin').onclick = () => {
 };
 document.getElementById('btnCerrarLogin').onclick = () => document.getElementById('loginAdminModal').style.display = 'none';
 
+// ==================== VERIFICAR ADMIN (CORREGIDO) ====================
 document.getElementById('btnVerificarAdmin').onclick = async () => {
     const password = document.getElementById('adminPassword').value;
-    if (!password) { alert("Ingrese una contraseña"); return; }
+    if (!password) { 
+        alert("Ingrese una contraseña"); 
+        return; 
+    }
     
-    const res = await callAPI("verificarAdmin", { password: password });
-    if (res.success) {
-        esAdmin = true;
-        document.getElementById('loginAdminModal').style.display = 'none';
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-        if (res.firstTime) alert("✅ CONTRASEÑA CREADA. Ahora puede acceder como administrador.");
-        else alert("✅ Acceso concedido");
-        cargarPanelAdmin();
-    } else {
-        document.getElementById('errorLoginAdmin').innerHTML = "❌ Contraseña incorrecta";
+    console.log("Verificando contraseña:", password);
+    
+    try {
+        // Llamar a la API para verificar/crear contraseña
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: "verificarAdmin", 
+                params: { password: password } 
+            })
+        });
+        
+        const data = await response.json();
+        console.log("Respuesta de la API:", data);
+        
+        if (data.success) {
+            esAdmin = true;
+            document.getElementById('loginAdminModal').style.display = 'none';
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+            if (data.firstTime) {
+                alert("✅ CONTRASEÑA CREADA. Ahora puede acceder como administrador.");
+            } else {
+                alert("✅ Acceso concedido");
+            }
+            cargarPanelAdmin();
+        } else {
+            document.getElementById('errorLoginAdmin').innerHTML = "❌ Contraseña incorrecta";
+        }
+    } catch (error) {
+        console.error("Error al verificar admin:", error);
+        document.getElementById('errorLoginAdmin').innerHTML = "❌ Error de conexión con la API";
     }
 };
 
