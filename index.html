@@ -367,7 +367,7 @@
 
 <script>
 // ==================== CONFIGURACIÓN ====================
-const API_URL = "https://script.google.com/macros/s/AKfycbx5oiJIj3uiRTsdoyFqbxQ1-WIQ0K-5WuQjOg2vkZK546z_Q3VTCKIhHEBhcL8OoqNTkA/exec";
+const API_URL = "https://api.allorigins.win/raw?url=https://script.google.com/macros/s/AKfycbx5oiJIj3uiRTsdoyFqbxQ1-WIQ0K-5WuQjOg2vkZK546z_Q3VTCKIhHEBhcL8OoqNTkA/exec";
 // Prueba de conexión al cargar la página
 fetch(API_URL, {
     method: 'POST',
@@ -402,7 +402,11 @@ async function callAPI(action, params = {}) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: action, params: { ...params, jugadorId: jugadorId } })
         });
-        return await response.json();
+        
+        // El proxy devuelve la respuesta en una propiedad especial
+        const text = await response.text();
+        const data = JSON.parse(text);
+        return data;
     } catch (e) {
         console.error("Error API:", e);
         return { success: false, error: e.message };
