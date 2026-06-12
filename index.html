@@ -208,7 +208,7 @@
         <h2 style="color:#FFCD00;">📝 REGISTRO DE JUGADOR</h2>
         <input type="text" id="registroNombre" placeholder="Nombre completo o apodo">
         <input type="tel" id="registroWhatsapp" placeholder="Número de WhatsApp (ej: 3001234567)">
-        <input type="text" id="registroCuenta" placeholder="Número de cuenta para depósito (Nequi/Daviplata/Bancolombia)">
+        <input type="text" id="registroCuenta" placeholder="Número de cuenta para depósito">
         <button id="btnGuardarRegistro" class="btn-login">GUARDAR</button>
         <button class="close-modal" id="btnCerrarRegistro">CERRAR</button>
     </div>
@@ -229,7 +229,7 @@
         <div class="pozo-label">🏆 POZO TOTAL ACUMULADO 🏆</div>
         <div class="pozo-amount" id="pozoTotalDisplay">$ 0</div>
         <div class="pozo-sub">💰 Este es el dinero que se repartirá entre los ganadores</div>
-        <button class="btn-primary" id="btnRecarga">➕ RECARGAR SALDO (Aumenta el pozo)</button>
+        <button class="btn-primary" id="btnRecarga">➕ RECARGAR SALDO</button>
     </div>
 
     <div class="tab">
@@ -304,9 +304,9 @@
     </div>
 
     <div class="legal-info">
-        <p>⚖️ Ley 1581/2012 - Protección de datos | Comisión del administrador: 10% | Reparto del 90% entre acertadores</p>
+        <p>⚖️ Ley 1581/2012 - Protección de datos | Comisión: 10% | Reparto: 90% entre acertadores</p>
         <p>⚠️ Solo mayores de 18 años | Juego responsable | Acumulación si no hay ganadores</p>
-        <p>💰 Cada jugada vale $5,000 COP | Horarios en hora Colombia (UTC-5)</p>
+        <p>💰 Cada jugada: $5,000 COP | Horarios: Hora Colombia (UTC-5)</p>
         <p>🔒 Apuestas cierran 45 minutos antes de cada partido</p>
     </div>
     <div class="footer">104 partidos oficiales | Cada jugada vale $5,000 COP</div>
@@ -318,12 +318,14 @@
         <p style="font-size:0.7rem;">Consigne a:</p>
         <p><strong>🔑 Nequi llave: 0091030441</strong></p>
         <p><strong>🏦 Bancolombia: 26269998309</strong></p>
+        <p><strong>💚 Nequi: 3103415830</strong></p>
         <input type="number" id="montoRecarga" placeholder="Monto a recargar">
         <select id="metodoRecarga">
             <option value="Nequi llave">🔑 Nequi llave 0091030441</option>
             <option value="Bancolombia">🏦 Bancolombia 26269998309</option>
+            <option value="Nequi número">💚 Nequi 3103415830</option>
         </select>
-        <input type="text" id="comprobanteRecarga" placeholder="Número de transacción / comprobante">
+        <input type="text" id="comprobanteRecarga" placeholder="Número de transacción">
         <button id="btnSolicitarRecarga" style="background:#FFCD00; border:none; padding:12px; border-radius:40px; width:100%; font-weight:bold; color:#0033A0;">📤 SOLICITAR</button>
         <button class="close-modal">❌ Cancelar</button>
     </div>
@@ -331,7 +333,6 @@
 
 <script>
 // ==================== CONFIGURACIÓN ====================
-// IMPORTANTE: Ya NO se usa Google Sheets para evitar CORS
 const ADMIN_PASSWORD = "colombia2026";
 const SITIO_URL = "https://tinyurl.com/2ujusm83";
 const VALOR_JUGADA = 5000;
@@ -350,127 +351,73 @@ let miWhatsapp = localStorage.getItem(`whatsapp_${jugadorId}`) || '';
 let miCuenta = localStorage.getItem(`cuenta_${jugadorId}`) || '';
 let misJugadas = [];
 
-// ==================== API LOCAL (NO necesita CORS) ====================
+// ==================== API LOCAL (SIN CORS) ====================
 async function callAPI(action, params = {}) {
-    console.log("API llamada:", action, params);
-    
-    // Datos locales
     let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
     let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
     
-    // Obtener o registrar jugador
     if (action === "obtenerJugador") {
         let jugador = jugadores.find(j => j.id === params.id);
         if (!jugador && params.nombre) {
-            jugador = { 
-                id: params.id, 
-                nombre: params.nombre, 
-                whatsapp: params.whatsapp || '', 
-                cuenta: params.cuenta || '', 
-                saldo: 0 
-            };
+            jugador = { id: params.id, nombre: params.nombre, whatsapp: params.whatsapp || '', cuenta: params.cuenta || '', saldo: 0 };
             jugadores.push(jugador);
             localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
         }
-        return { 
-            success: true, 
-            saldo: jugador?.saldo || 0, 
-            nombre: jugador?.nombre || '', 
-            whatsapp: jugador?.whatsapp || '', 
-            cuenta: jugador?.cuenta || '' 
-        };
+        return { success: true, saldo: jugador?.saldo || 0, nombre: jugador?.nombre || '', whatsapp: jugador?.whatsapp || '', cuenta: jugador?.cuenta || '' };
     }
     
-    // Actualizar saldo
     if (action === "actualizarSaldo") {
         let jugador = jugadores.find(j => j.id === params.id);
-        if (jugador) {
-            jugador.saldo = params.monto;
-            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-        }
+        if (jugador) { jugador.saldo = params.monto; localStorage.setItem('jugadores_app', JSON.stringify(jugadores)); }
         return { success: true };
     }
     
-    // Agregar jugada
     if (action === "agregarJugada") {
         let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${params.jugadorId}`) || '[]');
-        jugadasUser.push({
-            id: Date.now(),
-            partido: params.partido,
-            marcador: params.marcador,
-            monto: params.monto,
-            estado: 'pendiente',
-            fecha: new Date().toISOString()
-        });
+        jugadasUser.push({ id: Date.now(), partido: params.partido, marcador: params.marcador, monto: params.monto, estado: 'pendiente', fecha: new Date().toISOString() });
         localStorage.setItem(`jugadas_${params.jugadorId}`, JSON.stringify(jugadasUser));
         return { success: true };
     }
     
-    // Obtener jugadas
     if (action === "obtenerJugadas") {
         let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${params.id}`) || '[]');
         return { success: true, jugadas: jugadasUser };
     }
     
-    // Agregar solicitud de recarga
     if (action === "agregarSolicitud") {
-        solicitudes.push({
-            id: Date.now(),
-            jugadorId: params.jugadorId,
-            nombre: params.nombre,
-            monto: params.monto,
-            metodo: params.metodo,
-            comprobante: params.comprobante,
-            estado: 'pendiente',
-            fecha: new Date().toISOString()
-        });
+        solicitudes.push({ id: Date.now(), jugadorId: params.jugadorId, nombre: params.nombre, monto: params.monto, metodo: params.metodo, comprobante: params.comprobante, estado: 'pendiente', fecha: new Date().toISOString() });
         localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+        alert("✅ Solicitud enviada. Espere aprobación.");
         return { success: true };
     }
     
-    // Obtener solicitudes
     if (action === "obtenerSolicitudes") {
         return { success: true, solicitudes: solicitudes.filter(s => s.estado === 'pendiente') };
     }
     
-    // Aprobar solicitud
     if (action === "aprobarSolicitud") {
         const solicitud = solicitudes.find(s => s.id === params.solicitudId);
         if (solicitud) {
             solicitud.estado = 'aprobada';
             let jugador = jugadores.find(j => j.id === solicitud.jugadorId);
-            if (jugador) {
-                jugador.saldo = (jugador.saldo || 0) + solicitud.monto;
-                localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-            }
+            if (jugador) { jugador.saldo = (jugador.saldo || 0) + solicitud.monto; localStorage.setItem('jugadores_app', JSON.stringify(jugadores)); }
             localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
         }
         return { success: true };
     }
     
-    // Obtener ranking
     if (action === "obtenerRanking") {
-        const rankingList = jugadores.map(j => ({ 
-            id: j.id, 
-            nombre: j.nombre, 
-            saldo: j.saldo || 0, 
-            whatsapp: j.whatsapp || '' 
-        }));
+        const rankingList = jugadores.map(j => ({ id: j.id, nombre: j.nombre, saldo: j.saldo || 0, whatsapp: j.whatsapp || '' }));
         rankingList.sort((a, b) => b.saldo - a.saldo);
         return { success: true, ranking: rankingList };
     }
     
-    // Actualizar nombre
     if (action === "actualizarNombre") {
         let jugador = jugadores.find(j => j.id === params.jugadorId);
-        if (jugador) {
-            jugador.nombre = params.nombre;
-            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-        }
+        if (jugador) { jugador.nombre = params.nombre; localStorage.setItem('jugadores_app', JSON.stringify(jugadores)); }
         return { success: true };
     }
     
-    // Liquidar partido
     if (action === "liquidarPartido") {
         let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${jugadorId}`) || '[]');
         for (let jugada of jugadasUser) {
@@ -491,20 +438,11 @@ async function callAPI(action, params = {}) {
     return { success: false, error: "Acción no reconocida" };
 }
 
-function marcarPartidoComoLiquidado(partidoId) {
-    localStorage.setItem(`liquidado_${partidoId}`, 'true');
-}
-
-function verificarPartidoLiquidado(partidoId) {
-    return localStorage.getItem(`liquidado_${partidoId}`) === 'true';
-}
+function marcarPartidoComoLiquidado(partidoId) { localStorage.setItem(`liquidado_${partidoId}`, 'true'); }
+function verificarPartidoLiquidado(partidoId) { return localStorage.getItem(`liquidado_${partidoId}`) === 'true'; }
 
 function actualizarDisplay() {
-    if (miNombre) {
-        document.getElementById('nombreDisplay').innerHTML = `👤 ${miNombre}`;
-    } else {
-        document.getElementById('nombreDisplay').innerHTML = `🔓 Sin registrar`;
-    }
+    document.getElementById('nombreDisplay').innerHTML = miNombre ? `👤 ${miNombre}` : `🔓 Sin registrar`;
     document.getElementById('saldoDisplayRegistro').innerHTML = `💰 Mi saldo: $${(miSaldo || 0).toLocaleString()}`;
     document.getElementById('pozoTotalDisplay').innerHTML = `$ ${(pozoTotal || 0).toLocaleString()}`;
 }
@@ -522,12 +460,8 @@ document.getElementById('btnGuardarRegistro').onclick = async () => {
     let nombre = document.getElementById('registroNombre').value.trim();
     let whatsapp = document.getElementById('registroWhatsapp').value.trim();
     let cuenta = document.getElementById('registroCuenta').value.trim();
-    if (!nombre) { alert("Ingrese su nombre"); return; }
-    if (!whatsapp) { alert("Ingrese su número de WhatsApp"); return; }
-    if (!cuenta) { alert("Ingrese su número de cuenta para depósito"); return; }
-    miNombre = nombre;
-    miWhatsapp = whatsapp;
-    miCuenta = cuenta;
+    if (!nombre || !whatsapp || !cuenta) { alert("Complete todos los campos"); return; }
+    miNombre = nombre; miWhatsapp = whatsapp; miCuenta = cuenta;
     localStorage.setItem(`nombre_${jugadorId}`, nombre);
     localStorage.setItem(`whatsapp_${jugadorId}`, whatsapp);
     localStorage.setItem(`cuenta_${jugadorId}`, cuenta);
@@ -539,39 +473,141 @@ document.getElementById('btnGuardarRegistro').onclick = async () => {
 
 // Banderas
 const banderasMap = {
-    "🇲🇽 México": "🇲🇽", "🇿🇦 Sudáfrica": "🇿🇦", "🇰🇷 Corea del Sur": "🇰🇷", "🇨🇿 República Checa": "🇨🇿",
-    "🇨🇦 Canadá": "🇨🇦", "🇧🇦 Bosnia": "🇧🇦", "🇶🇦 Catar": "🇶🇦", "🇨🇭 Suiza": "🇨🇭",
-    "🇧🇷 Brasil": "🇧🇷", "🇲🇦 Marruecos": "🇲🇦", "🇭🇹 Haití": "🇭🇹", "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-    "🇺🇸 USA": "🇺🇸", "🇵🇾 Paraguay": "🇵🇾", "🇦🇺 Australia": "🇦🇺", "🇹🇷 Turquía": "🇹🇷",
-    "🇩🇪 Alemania": "🇩🇪", "🇨🇼 Curazao": "🇨🇼", "🇨🇮 Costa de Marfil": "🇨🇮", "🇪🇨 Ecuador": "🇪🇨",
-    "🇳🇱 Países Bajos": "🇳🇱", "🇯🇵 Japón": "🇯🇵", "🇸🇪 Suecia": "🇸🇪", "🇹🇳 Túnez": "🇹🇳",
-    "🇧🇪 Bélgica": "🇧🇪", "🇪🇬 Egipto": "🇪🇬", "🇮🇷 Irán": "🇮🇷", "🇳🇿 Nueva Zelanda": "🇳🇿",
-    "🇪🇸 España": "🇪🇸", "🇨🇻 Cabo Verde": "🇨🇻", "🇸🇦 Arabia Saudita": "🇸🇦", "🇺🇾 Uruguay": "🇺🇾",
-    "🇫🇷 Francia": "🇫🇷", "🇸🇳 Senegal": "🇸🇳", "🇮🇶 Irak": "🇮🇶", "🇳🇴 Noruega": "🇳🇴",
-    "🇦🇷 Argentina": "🇦🇷", "🇩🇿 Argelia": "🇩🇿", "🇦🇹 Austria": "🇦🇹", "🇯🇴 Jordania": "🇯🇴",
-    "🇵🇹 Portugal": "🇵🇹", "🇨🇩 RD Congo": "🇨🇩", "🇺🇿 Uzbekistán": "🇺🇿", "🇨🇴 Colombia": "🇨🇴",
-    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇭🇷 Croacia": "🇭🇷", "🇬🇭 Ghana": "🇬🇭", "🇵🇦 Panamá": "🇵🇦"
+    "🇲🇽 México":"🇲🇽","🇿🇦 Sudáfrica":"🇿🇦","🇰🇷 Corea del Sur":"🇰🇷","🇨🇿 República Checa":"🇨🇿",
+    "🇨🇦 Canadá":"🇨🇦","🇧🇦 Bosnia":"🇧🇦","🇶🇦 Catar":"🇶🇦","🇨🇭 Suiza":"🇨🇭",
+    "🇧🇷 Brasil":"🇧🇷","🇲🇦 Marruecos":"🇲🇦","🇭🇹 Haití":"🇭🇹","🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "🇺🇸 USA":"🇺🇸","🇵🇾 Paraguay":"🇵🇾","🇦🇺 Australia":"🇦🇺","🇹🇷 Turquía":"🇹🇷",
+    "🇩🇪 Alemania":"🇩🇪","🇨🇼 Curazao":"🇨🇼","🇨🇮 Costa de Marfil":"🇨🇮","🇪🇨 Ecuador":"🇪🇨",
+    "🇳🇱 Países Bajos":"🇳🇱","🇯🇵 Japón":"🇯🇵","🇸🇪 Suecia":"🇸🇪","🇹🇳 Túnez":"🇹🇳",
+    "🇧🇪 Bélgica":"🇧🇪","🇪🇬 Egipto":"🇪🇬","🇮🇷 Irán":"🇮🇷","🇳🇿 Nueva Zelanda":"🇳🇿",
+    "🇪🇸 España":"🇪🇸","🇨🇻 Cabo Verde":"🇨🇻","🇸🇦 Arabia Saudita":"🇸🇦","🇺🇾 Uruguay":"🇺🇾",
+    "🇫🇷 Francia":"🇫🇷","🇸🇳 Senegal":"🇸🇳","🇮🇶 Irak":"🇮🇶","🇳🇴 Noruega":"🇳🇴",
+    "🇦🇷 Argentina":"🇦🇷","🇩🇿 Argelia":"🇩🇿","🇦🇹 Austria":"🇦🇹","🇯🇴 Jordania":"🇯🇴",
+    "🇵🇹 Portugal":"🇵🇹","🇨🇩 RD Congo":"🇨🇩","🇺🇿 Uzbekistán":"🇺🇿","🇨🇴 Colombia":"🇨🇴",
+    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","🇭🇷 Croacia":"🇭🇷","🇬🇭 Ghana":"🇬🇭","🇵🇦 Panamá":"🇵🇦"
 };
 
 function formatearFecha(fechaISO) {
     const fecha = new Date(fechaISO);
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const horas = fecha.getHours();
-    const minutos = fecha.getMinutes().toString().padStart(2, '0');
-    const ampm = horas >= 12 ? 'PM' : 'AM';
-    const hora12 = horas % 12 || 12;
-    return `${diasSemana[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]} ${hora12}:${minutos} ${ampm}`;
+    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const h = fecha.getHours(), m = fecha.getMinutes().toString().padStart(2,'0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${dias[fecha.getDay()]} ${fecha.getDate()} ${meses[fecha.getMonth()]} ${h12}:${m} ${ampm}`;
 }
 
-// PARTIDOS (se mantiene igual, ya los tiene definidos antes)
-// ... (sus PARTIDOS ya están definidos, no los modifique)
+// ==================== 104 PARTIDOS OFICIALES - HORA COLOMBIA ====================
+const PARTIDOS = [
+    { id: 1, fecha: "2026-06-11 14:00", local: "🇲🇽 México", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
+    { id: 2, fecha: "2026-06-11 21:00", local: "🇰🇷 Corea del Sur", visitante: "🇨🇿 República Checa", fase: "Grupo A" },
+    { id: 3, fecha: "2026-06-18 13:00", local: "🇨🇿 República Checa", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
+    { id: 4, fecha: "2026-06-18 20:00", local: "🇲🇽 México", visitante: "🇰🇷 Corea del Sur", fase: "Grupo A" },
+    { id: 5, fecha: "2026-06-23 13:00", local: "🇨🇿 República Checa", visitante: "🇲🇽 México", fase: "Grupo A" },
+    { id: 6, fecha: "2026-06-23 13:00", local: "🇰🇷 Corea del Sur", visitante: "🇿🇦 Sudáfrica", fase: "Grupo A" },
+    { id: 7, fecha: "2026-06-12 14:00", local: "🇨🇦 Canadá", visitante: "🇧🇦 Bosnia", fase: "Grupo B" },
+    { id: 8, fecha: "2026-06-13 13:00", local: "🇶🇦 Catar", visitante: "🇨🇭 Suiza", fase: "Grupo B" },
+    { id: 9, fecha: "2026-06-19 14:00", local: "🇨🇦 Canadá", visitante: "🇶🇦 Catar", fase: "Grupo B" },
+    { id: 10, fecha: "2026-06-19 21:00", local: "🇧🇦 Bosnia", visitante: "🇨🇭 Suiza", fase: "Grupo B" },
+    { id: 11, fecha: "2026-06-24 14:00", local: "🇨🇭 Suiza", visitante: "🇨🇦 Canadá", fase: "Grupo B" },
+    { id: 12, fecha: "2026-06-24 20:00", local: "🇧🇦 Bosnia", visitante: "🇶🇦 Catar", fase: "Grupo B" },
+    { id: 13, fecha: "2026-06-13 15:00", local: "🇧🇷 Brasil", visitante: "🇲🇦 Marruecos", fase: "Grupo C" },
+    { id: 14, fecha: "2026-06-13 20:00", local: "🇭🇹 Haití", visitante: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", fase: "Grupo C" },
+    { id: 15, fecha: "2026-06-20 15:00", local: "🇧🇷 Brasil", visitante: "🇭🇹 Haití", fase: "Grupo C" },
+    { id: 16, fecha: "2026-06-20 20:00", local: "🇲🇦 Marruecos", visitante: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", fase: "Grupo C" },
+    { id: 17, fecha: "2026-06-25 14:00", local: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia", visitante: "🇧🇷 Brasil", fase: "Grupo C" },
+    { id: 18, fecha: "2026-06-25 14:00", local: "🇲🇦 Marruecos", visitante: "🇭🇹 Haití", fase: "Grupo C" },
+    { id: 19, fecha: "2026-06-12 20:00", local: "🇺🇸 USA", visitante: "🇵🇾 Paraguay", fase: "Grupo D" },
+    { id: 20, fecha: "2026-06-14 23:00", local: "🇦🇺 Australia", visitante: "🇹🇷 Turquía", fase: "Grupo D" },
+    { id: 21, fecha: "2026-06-19 23:00", local: "🇺🇸 USA", visitante: "🇦🇺 Australia", fase: "Grupo D" },
+    { id: 22, fecha: "2026-06-20 22:00", local: "🇵🇾 Paraguay", visitante: "🇹🇷 Turquía", fase: "Grupo D" },
+    { id: 23, fecha: "2026-06-26 14:00", local: "🇹🇷 Turquía", visitante: "🇺🇸 USA", fase: "Grupo D" },
+    { id: 24, fecha: "2026-06-26 14:00", local: "🇵🇾 Paraguay", visitante: "🇦🇺 Australia", fase: "Grupo D" },
+    { id: 25, fecha: "2026-06-14 12:00", local: "🇩🇪 Alemania", visitante: "🇨🇼 Curazao", fase: "Grupo E" },
+    { id: 26, fecha: "2026-06-14 18:00", local: "🇨🇮 Costa de Marfil", visitante: "🇪🇨 Ecuador", fase: "Grupo E" },
+    { id: 27, fecha: "2026-06-20 18:00", local: "🇩🇪 Alemania", visitante: "🇨🇮 Costa de Marfil", fase: "Grupo E" },
+    { id: 28, fecha: "2026-06-21 21:00", local: "🇨🇼 Curazao", visitante: "🇪🇨 Ecuador", fase: "Grupo E" },
+    { id: 29, fecha: "2026-06-25 19:00", local: "🇪🇨 Ecuador", visitante: "🇩🇪 Alemania", fase: "Grupo E" },
+    { id: 30, fecha: "2026-06-25 19:00", local: "🇨🇼 Curazao", visitante: "🇨🇮 Costa de Marfil", fase: "Grupo E" },
+    { id: 31, fecha: "2026-06-15 14:00", local: "🇳🇱 Países Bajos", visitante: "🇯🇵 Japón", fase: "Grupo F" },
+    { id: 32, fecha: "2026-06-15 20:00", local: "🇸🇪 Suecia", visitante: "🇹🇳 Túnez", fase: "Grupo F" },
+    { id: 33, fecha: "2026-06-21 14:00", local: "🇳🇱 Países Bajos", visitante: "🇸🇪 Suecia", fase: "Grupo F" },
+    { id: 34, fecha: "2026-06-21 20:00", local: "🇯🇵 Japón", visitante: "🇹🇳 Túnez", fase: "Grupo F" },
+    { id: 35, fecha: "2026-06-26 18:00", local: "🇹🇳 Túnez", visitante: "🇳🇱 Países Bajos", fase: "Grupo F" },
+    { id: 36, fecha: "2026-06-26 18:00", local: "🇯🇵 Japón", visitante: "🇸🇪 Suecia", fase: "Grupo F" },
+    { id: 37, fecha: "2026-06-16 13:00", local: "🇧🇪 Bélgica", visitante: "🇪🇬 Egipto", fase: "Grupo G" },
+    { id: 38, fecha: "2026-06-16 20:00", local: "🇮🇷 Irán", visitante: "🇳🇿 Nueva Zelanda", fase: "Grupo G" },
+    { id: 39, fecha: "2026-06-22 13:00", local: "🇧🇪 Bélgica", visitante: "🇮🇷 Irán", fase: "Grupo G" },
+    { id: 40, fecha: "2026-06-22 20:00", local: "🇪🇬 Egipto", visitante: "🇳🇿 Nueva Zelanda", fase: "Grupo G" },
+    { id: 41, fecha: "2026-06-27 16:00", local: "🇳🇿 Nueva Zelanda", visitante: "🇧🇪 Bélgica", fase: "Grupo G" },
+    { id: 42, fecha: "2026-06-27 16:00", local: "🇪🇬 Egipto", visitante: "🇮🇷 Irán", fase: "Grupo G" },
+    { id: 43, fecha: "2026-06-17 12:00", local: "🇪🇸 España", visitante: "🇨🇻 Cabo Verde", fase: "Grupo H" },
+    { id: 44, fecha: "2026-06-17 20:00", local: "🇸🇦 Arabia Saudita", visitante: "🇺🇾 Uruguay", fase: "Grupo H" },
+    { id: 45, fecha: "2026-06-23 14:00", local: "🇪🇸 España", visitante: "🇸🇦 Arabia Saudita", fase: "Grupo H" },
+    { id: 46, fecha: "2026-06-23 20:00", local: "🇨🇻 Cabo Verde", visitante: "🇺🇾 Uruguay", fase: "Grupo H" },
+    { id: 47, fecha: "2026-06-28 16:00", local: "🇺🇾 Uruguay", visitante: "🇪🇸 España", fase: "Grupo H" },
+    { id: 48, fecha: "2026-06-28 16:00", local: "🇨🇻 Cabo Verde", visitante: "🇸🇦 Arabia Saudita", fase: "Grupo H" },
+    { id: 49, fecha: "2026-06-17 15:00", local: "🇫🇷 Francia", visitante: "🇸🇳 Senegal", fase: "Grupo I" },
+    { id: 50, fecha: "2026-06-18 22:00", local: "🇮🇶 Irak", visitante: "🇳🇴 Noruega", fase: "Grupo I" },
+    { id: 51, fecha: "2026-06-23 18:00", local: "🇫🇷 Francia", visitante: "🇮🇶 Irak", fase: "Grupo I" },
+    { id: 52, fecha: "2026-06-23 23:00", local: "🇸🇳 Senegal", visitante: "🇳🇴 Noruega", fase: "Grupo I" },
+    { id: 53, fecha: "2026-06-28 14:00", local: "🇳🇴 Noruega", visitante: "🇫🇷 Francia", fase: "Grupo I" },
+    { id: 54, fecha: "2026-06-28 14:00", local: "🇸🇳 Senegal", visitante: "🇮🇶 Irak", fase: "Grupo I" },
+    { id: 55, fecha: "2026-06-18 14:00", local: "🇦🇷 Argentina", visitante: "🇩🇿 Argelia", fase: "Grupo J" },
+    { id: 56, fecha: "2026-06-19 01:00", local: "🇦🇹 Austria", visitante: "🇯🇴 Jordania", fase: "Grupo J" },
+    { id: 57, fecha: "2026-06-23 16:00", local: "🇦🇷 Argentina", visitante: "🇦🇹 Austria", fase: "Grupo J" },
+    { id: 58, fecha: "2026-06-24 01:00", local: "🇩🇿 Argelia", visitante: "🇯🇴 Jordania", fase: "Grupo J" },
+    { id: 59, fecha: "2026-06-28 20:00", local: "🇯🇴 Jordania", visitante: "🇦🇷 Argentina", fase: "Grupo J" },
+    { id: 60, fecha: "2026-06-28 20:00", local: "🇩🇿 Argelia", visitante: "🇦🇹 Austria", fase: "Grupo J" },
+    { id: 61, fecha: "2026-06-17 12:00", local: "🇵🇹 Portugal", visitante: "🇨🇩 RD Congo", fase: "Grupo K" },
+    { id: 62, fecha: "2026-06-17 21:00", local: "🇺🇿 Uzbekistán", visitante: "🇨🇴 Colombia", fase: "Grupo K" },
+    { id: 63, fecha: "2026-06-23 12:00", local: "🇵🇹 Portugal", visitante: "🇺🇿 Uzbekistán", fase: "Grupo K" },
+    { id: 64, fecha: "2026-06-23 21:00", local: "🇨🇴 Colombia", visitante: "🇨🇩 RD Congo", fase: "Grupo K" },
+    { id: 65, fecha: "2026-06-27 18:30", local: "🇨🇴 Colombia", visitante: "🇵🇹 Portugal", fase: "Grupo K" },
+    { id: 66, fecha: "2026-06-27 18:30", local: "🇨🇩 RD Congo", visitante: "🇺🇿 Uzbekistán", fase: "Grupo K" },
+    { id: 67, fecha: "2026-06-16 15:00", local: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", visitante: "🇭🇷 Croacia", fase: "Grupo L" },
+    { id: 68, fecha: "2026-06-16 21:00", local: "🇬🇭 Ghana", visitante: "🇵🇦 Panamá", fase: "Grupo L" },
+    { id: 69, fecha: "2026-06-22 15:00", local: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", visitante: "🇬🇭 Ghana", fase: "Grupo L" },
+    { id: 70, fecha: "2026-06-22 21:00", local: "🇭🇷 Croacia", visitante: "🇵🇦 Panamá", fase: "Grupo L" },
+    { id: 71, fecha: "2026-06-28 18:00", local: "🇵🇦 Panamá", visitante: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", fase: "Grupo L" },
+    { id: 72, fecha: "2026-06-28 18:00", local: "🇭🇷 Croacia", visitante: "🇬🇭 Ghana", fase: "Grupo L" },
+    { id: 73, fecha: "2026-07-02 12:00", local: "🏆 1° Grupo A", visitante: "🏆 2° Grupo C", fase: "Dieciseisavos" },
+    { id: 74, fecha: "2026-07-02 16:00", local: "🏆 1° Grupo B", visitante: "🏆 2° Grupo F", fase: "Dieciseisavos" },
+    { id: 75, fecha: "2026-07-03 12:00", local: "🏆 1° Grupo C", visitante: "🏆 3° Grupo A/B/F", fase: "Dieciseisavos" },
+    { id: 76, fecha: "2026-07-03 16:00", local: "🏆 1° Grupo D", visitante: "🏆 2° Grupo E", fase: "Dieciseisavos" },
+    { id: 77, fecha: "2026-07-04 12:00", local: "🏆 1° Grupo E", visitante: "🏆 2° Grupo D", fase: "Dieciseisavos" },
+    { id: 78, fecha: "2026-07-04 16:00", local: "🏆 1° Grupo F", visitante: "🏆 2° Grupo B", fase: "Dieciseisavos" },
+    { id: 79, fecha: "2026-07-05 12:00", local: "🏆 1° Grupo G", visitante: "🏆 2° Grupo H", fase: "Dieciseisavos" },
+    { id: 80, fecha: "2026-07-05 16:00", local: "🏆 1° Grupo H", visitante: "🏆 2° Grupo G", fase: "Dieciseisavos" },
+    { id: 81, fecha: "2026-07-06 12:00", local: "🏆 1° Grupo I", visitante: "🏆 2° Grupo J", fase: "Dieciseisavos" },
+    { id: 82, fecha: "2026-07-06 16:00", local: "🏆 1° Grupo J", visitante: "🏆 2° Grupo I", fase: "Dieciseisavos" },
+    { id: 83, fecha: "2026-07-07 12:00", local: "🏆 1° Grupo K", visitante: "🏆 2° Grupo L", fase: "Dieciseisavos" },
+    { id: 84, fecha: "2026-07-07 16:00", local: "🏆 1° Grupo L", visitante: "🏆 2° Grupo K", fase: "Dieciseisavos" },
+    { id: 85, fecha: "2026-07-08 12:00", local: "🏆 Mejor 3°", visitante: "🏆 Mejor 3°", fase: "Dieciseisavos" },
+    { id: 86, fecha: "2026-07-08 16:00", local: "🏆 Mejor 3°", visitante: "🏆 Mejor 3°", fase: "Dieciseisavos" },
+    { id: 87, fecha: "2026-07-09 12:00", local: "🏆 Ganador D16 1", visitante: "🏆 Ganador D16 2", fase: "Octavos" },
+    { id: 88, fecha: "2026-07-09 16:00", local: "🏆 Ganador D16 3", visitante: "🏆 Ganador D16 4", fase: "Octavos" },
+    { id: 89, fecha: "2026-07-11 12:00", local: "🏆 Ganador D16 5", visitante: "🏆 Ganador D16 6", fase: "Octavos" },
+    { id: 90, fecha: "2026-07-11 16:00", local: "🏆 Ganador D16 7", visitante: "🏆 Ganador D16 8", fase: "Octavos" },
+    { id: 91, fecha: "2026-07-12 12:00", local: "🏆 Ganador D16 9", visitante: "🏆 Ganador D16 10", fase: "Octavos" },
+    { id: 92, fecha: "2026-07-12 16:00", local: "🏆 Ganador D16 11", visitante: "🏆 Ganador D16 12", fase: "Octavos" },
+    { id: 93, fecha: "2026-07-13 12:00", local: "🏆 Ganador D16 13", visitante: "🏆 Ganador D16 14", fase: "Octavos" },
+    { id: 94, fecha: "2026-07-13 16:00", local: "🏆 Ganador D16 15", visitante: "🏆 Ganador D16 16", fase: "Octavos" },
+    { id: 95, fecha: "2026-07-16 12:00", local: "🏆 Ganador Octavo 1", visitante: "🏆 Ganador Octavo 2", fase: "Cuartos" },
+    { id: 96, fecha: "2026-07-16 16:00", local: "🏆 Ganador Octavo 3", visitante: "🏆 Ganador Octavo 4", fase: "Cuartos" },
+    { id: 97, fecha: "2026-07-17 12:00", local: "🏆 Ganador Octavo 5", visitante: "🏆 Ganador Octavo 6", fase: "Cuartos" },
+    { id: 98, fecha: "2026-07-17 16:00", local: "🏆 Ganador Octavo 7", visitante: "🏆 Ganador Octavo 8", fase: "Cuartos" },
+    { id: 99, fecha: "2026-07-20 14:00", local: "🏆 Ganador Cuarto 1", visitante: "🏆 Ganador Cuarto 2", fase: "Semifinal" },
+    { id: 100, fecha: "2026-07-21 14:00", local: "🏆 Ganador Cuarto 3", visitante: "🏆 Ganador Cuarto 4", fase: "Semifinal" },
+    { id: 101, fecha: "2026-07-24 14:00", local: "🏆 Perdedor Semifinal 1", visitante: "🏆 Perdedor Semifinal 2", fase: "Tercer Lugar" },
+    { id: 102, fecha: "2026-07-25 15:00", local: "🏆 Ganador Semifinal 1", visitante: "🏆 Ganador Semifinal 2", fase: "FINAL" }
+];
+PARTIDOS.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
 function actualizarBanderasPartido() {
     const select = document.getElementById('partidoSelect');
     const selectedId = select.value;
     if (!selectedId) return;
-    
     const partido = PARTIDOS.find(p => p.id == parseInt(selectedId));
     if (!partido) return;
     
@@ -580,55 +616,43 @@ function actualizarBanderasPartido() {
     const minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
     const horasRestantes = Math.floor(minutosRestantes / 60);
     
-    let mensajeAdvertencia = "";
-    let apuestaHabilitada = true;
-    let claseAviso = "normal";
+    let mensaje = "", habilitado = true, clase = "normal";
     
     if (verificarPartidoLiquidado(partido.id)) {
-        mensajeAdvertencia = "⛔ Este partido YA FUE LIQUIDADO. No se aceptan apuestas.";
-        apuestaHabilitada = false;
-        claseAviso = "advertencia";
+        mensaje = "⛔ Este partido YA FUE LIQUIDADO. No se aceptan apuestas.";
+        habilitado = false; clase = "advertencia";
     } else if (fechaPartido < ahora) {
-        mensajeAdvertencia = "⛔ Este partido YA COMENZÓ. No se aceptan más apuestas.";
-        apuestaHabilitada = false;
-        claseAviso = "advertencia";
+        mensaje = "⛔ Este partido YA COMENZÓ. No se aceptan más apuestas.";
+        habilitado = false; clase = "advertencia";
     } else if (minutosRestantes < 45 && minutosRestantes > 0) {
-        mensajeAdvertencia = `⚠️ Faltan solo ${minutosRestantes} minutos para el inicio. Apuestas cerradas.`;
-        apuestaHabilitada = false;
-        claseAviso = "advertencia";
+        mensaje = `⚠️ Faltan ${minutosRestantes} minutos para el inicio. Apuestas cerradas.`;
+        habilitado = false; clase = "advertencia";
     } else if (horasRestantes < 24 && horasRestantes > 0) {
-        mensajeAdvertencia = `✅ Partido en ${horasRestantes} horas. Puede apostar (hasta 45 min antes).`;
-        apuestaHabilitada = true;
-        claseAviso = "exito";
+        mensaje = `✅ Partido en ${horasRestantes} horas. Puede apostar (hasta 45 min antes).`;
+        habilitado = true; clase = "exito";
     } else if (minutosRestantes > 0) {
-        const diasRestantes = Math.floor(horasRestantes / 24);
-        mensajeAdvertencia = `✅ Partido en ${diasRestantes} días. Puede apostar normalmente.`;
-        apuestaHabilitada = true;
-        claseAviso = "exito";
+        mensaje = `✅ Partido en ${Math.floor(horasRestantes/24)} días. Puede apostar.`;
+        habilitado = true; clase = "exito";
     }
     
-    const avisoDiv = document.getElementById('avisoPartido');
-    avisoDiv.innerHTML = mensajeAdvertencia;
-    avisoDiv.className = `aviso-partido ${claseAviso}`;
+    const aviso = document.getElementById('avisoPartido');
+    aviso.innerHTML = mensaje;
+    aviso.className = `aviso-partido ${clase}`;
     
     const btnJugar = document.getElementById('btnJugar');
-    if (btnJugar) {
-        btnJugar.disabled = !apuestaHabilitada;
-        btnJugar.style.opacity = apuestaHabilitada ? '1' : '0.5';
-        btnJugar.style.cursor = apuestaHabilitada ? 'pointer' : 'not-allowed';
-    }
+    btnJugar.disabled = !habilitado;
+    btnJugar.style.opacity = habilitado ? '1' : '0.5';
+    btnJugar.style.cursor = habilitado ? 'pointer' : 'not-allowed';
     
-    const selectedText = select.options[select.selectedIndex]?.text || "";
-    const partes = selectedText.split(" | ");
+    const texto = select.options[select.selectedIndex]?.text || "";
+    const partes = texto.split(" | ");
     if (partes.length >= 4) {
         const equipos = partes[3].split(" vs ");
         if (equipos.length >= 2) {
-            let localRaw = equipos[0].trim();
-            let visitanteRaw = equipos[1].trim();
-            document.getElementById('banderaLocal').innerHTML = banderasMap[localRaw] || "🏆";
-            document.getElementById('nombreLocal').innerHTML = localRaw;
-            document.getElementById('banderaVisitante').innerHTML = banderasMap[visitanteRaw] || "🏆";
-            document.getElementById('nombreVisitante').innerHTML = visitanteRaw;
+            document.getElementById('banderaLocal').innerHTML = banderasMap[equipos[0].trim()] || "🏆";
+            document.getElementById('nombreLocal').innerHTML = equipos[0].trim();
+            document.getElementById('banderaVisitante').innerHTML = banderasMap[equipos[1].trim()] || "🏆";
+            document.getElementById('nombreVisitante').innerHTML = equipos[1].trim();
         }
     }
 }
@@ -636,363 +660,226 @@ document.getElementById('partidoSelect').onchange = actualizarBanderasPartido;
 
 // ==================== WHATSAPP ====================
 document.getElementById('btnWhatsappCompartir').onclick = () => {
-    const mensaje = `🏆 LA POLLA MUNDIAL 2026 🏆\n\n¡Te invito a participar!\n✅ Acierta los marcadores\n✅ Gana parte del pozo acumulado\n✅ $5,000 por jugada\n\n📱 ${SITIO_URL}\n\n🇨🇴 ¡Anímate!`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(`🏆 LA POLLA MUNDIAL 2026 🏆\n\n¡Te invito a participar!\n✅ Acierta los marcadores\n✅ $5,000 por jugada\n\n📱 ${SITIO_URL}`)}`,'_blank');
 };
 document.getElementById('btnSoporteWhatsapp').onclick = () => {
-    window.open(`https://wa.me/57${miWhatsapp || '3000000000'}?text=${encodeURIComponent("🆘 SOPORTE\nHola, soy " + miNombre)}`, '_blank');
+    window.open(`https://wa.me/57${miWhatsapp||'3000000000'}?text=${encodeURIComponent("🆘 SOPORTE\nHola, soy "+miNombre)}`,'_blank');
 };
 document.getElementById('btnCobrarWhatsapp').onclick = () => {
-    let total = misJugadas.filter(j => j.estado === 'ganada').reduce((s, j) => s + (parseInt(j.ganancia) || 0), 0);
-    if (total === 0) { alert("No hay ganancias para cobrar"); return; }
-    const mensaje = `🏆 COBRO POLLA MUNDIAL 2026 🏆\n\n👤 Nombre: ${miNombre}\n📱 WhatsApp: ${miWhatsapp}\n🏦 Cuenta para depósito: ${miCuenta}\n💰 Total a cobrar: $${total.toLocaleString()} COP\n\nGracias.`;
-    window.open(`https://wa.me/57${adminNumero || '3000000000'}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    let total = misJugadas.filter(j=>j.estado==='ganada').reduce((s,j)=>s+(parseInt(j.ganancia)||0),0);
+    if(total===0){alert("No hay ganancias para cobrar");return;}
+    window.open(`https://wa.me/57${adminNumero||'3000000000'}?text=${encodeURIComponent(`🏆 COBRO\n👤 ${miNombre}\n📱 ${miWhatsapp}\n🏦 ${miCuenta}\n💰 $${total.toLocaleString()}`)}`,'_blank');
 };
 
 // ==================== ADMIN ====================
-document.getElementById('btnMostrarAdmin').onclick = () => {
-    document.getElementById('loginAdminModal').style.display = 'flex';
-    document.getElementById('adminPassword').value = '';
-    document.getElementById('errorLoginAdmin').innerText = '';
-};
-document.getElementById('btnCerrarLogin').onclick = () => document.getElementById('loginAdminModal').style.display = 'none';
-
-document.getElementById('btnVerificarAdmin').onclick = async () => {
-    const password = document.getElementById('adminPassword').value;
-    if (password === ADMIN_PASSWORD) {
-        esAdmin = true;
-        document.getElementById('loginAdminModal').style.display = 'none';
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+document.getElementById('btnMostrarAdmin').onclick=()=>document.getElementById('loginAdminModal').style.display='flex';
+document.getElementById('btnCerrarLogin').onclick=()=>document.getElementById('loginAdminModal').style.display='none';
+document.getElementById('btnVerificarAdmin').onclick=async()=>{
+    if(document.getElementById('adminPassword').value===ADMIN_PASSWORD){
+        esAdmin=true;
+        document.getElementById('loginAdminModal').style.display='none';
+        document.querySelectorAll('.admin-only').forEach(el=>el.style.display='block');
         alert("✅ Modo administrador activado");
         await cargarDatosAdmin();
-    } else {
-        document.getElementById('errorLoginAdmin').innerText = "❌ Contraseña incorrecta";
-    }
+    }else document.getElementById('errorLoginAdmin').innerText="❌ Contraseña incorrecta";
 };
 
 // ==================== DATOS ====================
-async function cargarDatosJugador() {
-    let r = await callAPI("obtenerJugador", { id: jugadorId });
-    if (r.success) {
-        miSaldo = r.saldo || 0;
-        miNombre = r.nombre || miNombre;
-        miWhatsapp = r.whatsapp || miWhatsapp;
-        miCuenta = r.cuenta || miCuenta;
+async function cargarDatosJugador(){
+    let r=await callAPI("obtenerJugador",{id:jugadorId});
+    if(r.success){
+        miSaldo=r.saldo||0; miNombre=r.nombre||miNombre;
+        miWhatsapp=r.whatsapp||miWhatsapp; miCuenta=r.cuenta||miCuenta;
         actualizarDisplay();
     }
-    let jr = await callAPI("obtenerJugadas", { id: jugadorId });
-    if (jr.success) {
-        misJugadas = jr.jugadas || [];
-        let html = '';
-        if (misJugadas.length) {
-            [...misJugadas].reverse().forEach(j => {
-                html += `<div class="historial-item"><strong>${j.partido}</strong><br>${j.marcador} | $${parseInt(j.monto).toLocaleString()}<br>${j.estado === 'ganada' ? '✅ GANADA' : j.estado === 'perdida' ? '❌ PERDIDA' : '⏳ PENDIENTE'} ${j.ganancia ? `| Ganó: $${parseInt(j.ganancia).toLocaleString()}` : ''}</div>`;
+    let jr=await callAPI("obtenerJugadas",{id:jugadorId});
+    if(jr.success){
+        misJugadas=jr.jugadas||[];
+        let html='';
+        if(misJugadas.length){
+            [...misJugadas].reverse().forEach(j=>{
+                html+=`<div class="historial-item"><strong>${j.partido}</strong><br>${j.marcador} | $${parseInt(j.monto).toLocaleString()}<br>${j.estado==='ganada'?'✅ GANADA':j.estado==='perdida'?'❌ PERDIDA':'⏳ PENDIENTE'} ${j.ganancia?`| Ganó: $${parseInt(j.ganancia).toLocaleString()}`:''}</div>`;
             });
-        } else {
-            html = "No hay jugadas";
-        }
-        document.getElementById('historialContainer').innerHTML = html;
+        }else html="No hay jugadas";
+        document.getElementById('historialContainer').innerHTML=html;
     }
-    let kr = await callAPI("obtenerRanking");
-    if (kr.success) {
-        let rank = kr.ranking || [];
-        let html = '';
-        rank.slice(0, 20).forEach((u, i) => {
-            html += `<li class="ranking-item ${i === 0 ? 'top1' : ''}"><span class="rank-number">${i + 1}</span><span class="rank-name">${i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}${u.nombre}</span><span class="rank-score">$${(u.saldo || 0).toLocaleString()}</span></li>`;
+    let kr=await callAPI("obtenerRanking");
+    if(kr.success){
+        let rank=kr.ranking||[], html='';
+        rank.slice(0,20).forEach((u,i)=>{
+            html+=`<li class="ranking-item ${i===0?'top1':''}"><span class="rank-number">${i+1}</span><span class="rank-name">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${u.nombre}</span><span class="rank-score">$${(u.saldo||0).toLocaleString()}</span></li>`;
         });
-        document.getElementById('rankingList').innerHTML = html || "<li>Sin datos</li>";
+        document.getElementById('rankingList').innerHTML=html||"<li>Sin datos</li>";
     }
 }
 
-async function cargarDatosAdmin() {
-    if (!esAdmin) return;
-    
-    // Cargar solicitudes desde localStorage
-    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
-    const pendientes = solicitudes.filter(s => s.estado === 'pendiente');
-    
-    let html = '';
-    if (pendientes.length) {
-        pendientes.forEach(s => {
-            html += `<div class="solicitud-item">
-                        <strong>${s.nombre || s.jugadorId}</strong><br>
-                        💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>
-                        📄 ${s.comprobante}<br>
-                        <button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}',${s.monto},'${s.jugadorId}')">✅ APROBAR</button>
-                    </div>`;
+async function cargarDatosAdmin(){
+    if(!esAdmin) return;
+    const solicitudes=JSON.parse(localStorage.getItem('solicitudes_app')||'[]');
+    const pendientes=solicitudes.filter(s=>s.estado==='pendiente');
+    let html='';
+    if(pendientes.length){
+        pendientes.forEach(s=>{
+            html+=`<div class="solicitud-item"><strong>${s.nombre||s.jugadorId}</strong><br>💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>📄 ${s.comprobante}<br><button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}',${s.monto},'${s.jugadorId}')">✅ APROBAR</button></div>`;
         });
-    } else {
-        html = "✅ No hay solicitudes pendientes";
-    }
-    document.getElementById('solicitudesPendientes').innerHTML = html;
+    }else html="✅ No hay solicitudes pendientes";
+    document.getElementById('solicitudesPendientes').innerHTML=html;
     
-    // Cargar jugadores
-    const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-    let jugadoresHtml = '';
-    jugadores.forEach(j => {
-        jugadoresHtml += `<div class="jugador-item">
-                            <strong>${j.nombre}</strong><br>
-                            📱 WhatsApp: ${j.whatsapp || 'No'}<br>
-                            🏆 Saldo: $${(j.saldo || 0).toLocaleString()}
-                        </div>`;
+    const jugadores=JSON.parse(localStorage.getItem('jugadores_app')||'[]');
+    let jugadoresHtml='';
+    jugadores.forEach(j=>{
+        jugadoresHtml+=`<div class="jugador-item"><strong>${j.nombre}</strong><br>📱 ${j.whatsapp||'No'}<br>🏆 $${(j.saldo||0).toLocaleString()}</div>`;
     });
-    document.getElementById('listaJugadores').innerHTML = jugadoresHtml || "No hay jugadores registrados";
+    document.getElementById('listaJugadores').innerHTML=jugadoresHtml||"No hay jugadores";
     
-    // Llenar select
-    let sel = document.getElementById('adminJugadorSelect');
-    sel.innerHTML = '<option value="">-- Seleccione jugador --</option>';
-    jugadores.forEach(j => {
-        sel.innerHTML += `<option value="${j.id}">${j.nombre}</option>`;
-    });
+    let sel=document.getElementById('adminJugadorSelect');
+    sel.innerHTML='<option value="">-- Seleccione --</option>';
+    jugadores.forEach(j=>{sel.innerHTML+=`<option value="${j.id}">${j.nombre}</option>`;});
 }
 
 // ==================== ACCIONES ====================
-async function agregarJugada(partido, gl, gv) {
-    const monto = VALOR_JUGADA;
-    
-    const p = PARTIDOS.find(p => `${p.local} vs ${p.visitante}` === partido);
-    if (!p) {
-        alert("❌ Partido no encontrado.");
-        return false;
-    }
-    
-    const ahora = new Date();
-    const fechaPartido = new Date(p.fecha);
-    
-    if (fechaPartido < ahora) {
-        alert(`⏰ Este partido ya comenzó o terminó.\nNo se aceptan más apuestas.`);
-        return false;
-    }
-    
-    const minutosRestantes = Math.floor((fechaPartido - ahora) / (1000 * 60));
-    if (minutosRestantes < 45 && minutosRestantes > 0) {
-        alert(`⚠️ Faltan solo ${minutosRestantes} minutos para el inicio.\nApuestas cerradas para este partido.`);
-        return false;
-    }
-    
-    if (verificarPartidoLiquidado(p.id)) {
-        alert("❌ Este partido ya fue liquidado. No se aceptan apuestas.");
-        return false;
-    }
-    
-    if (monto > miSaldo) {
-        alert(`Saldo insuficiente: $${miSaldo.toLocaleString()}\nNecesita $${monto.toLocaleString()} para esta jugada.`);
-        return false;
-    }
-    
-    if (!miNombre) {
-        alert("⚠️ Primero regístrese con su nombre.");
-        document.getElementById('modalRegistro').style.display = 'flex';
-        return false;
-    }
-    
-    let r = await callAPI("agregarJugada", { 
-        partido: partido, 
-        marcador: `${gl} - ${gv}`, 
-        monto: monto 
-    });
-    
-    if (r.success) {
-        miSaldo -= monto;
-        pozoTotal += monto;
+async function agregarJugada(partido,gl,gv){
+    const p=PARTIDOS.find(p=>`${p.local} vs ${p.visitante}`===partido);
+    if(!p){alert("❌ Partido no encontrado.");return false;}
+    const ahora=new Date(), fechaPartido=new Date(p.fecha);
+    if(fechaPartido<ahora){alert("⏰ Este partido ya comenzó. No se aceptan apuestas.");return false;}
+    const minutosRestantes=Math.floor((fechaPartido-ahora)/(1000*60));
+    if(minutosRestantes<45 && minutosRestantes>0){alert(`⚠️ Faltan ${minutosRestantes} minutos. Apuestas cerradas.`);return false;}
+    if(verificarPartidoLiquidado(p.id)){alert("❌ Partido ya liquidado.");return false;}
+    if(VALOR_JUGADA>miSaldo){alert(`Saldo insuficiente: $${miSaldo.toLocaleString()}`);return false;}
+    if(!miNombre){alert("⚠️ Regístrese primero.");document.getElementById('modalRegistro').style.display='flex';return false;}
+    let r=await callAPI("agregarJugada",{partido,marcador:`${gl} - ${gv}`,monto:VALOR_JUGADA});
+    if(r.success){
+        miSaldo-=VALOR_JUGADA; pozoTotal+=VALOR_JUGADA;
         actualizarDisplay();
         await cargarDatosJugador();
-        
-        const fechaLegible = formatearFecha(p.fecha);
-        alert(`✅ JUGADA REGISTRADA\n\n📅 ${fechaLegible}\n⚽ ${partido}\n🎯 Marcador: ${gl} - ${gv}\n💰 Valor: $${monto.toLocaleString()}\n\n📌 Su saldo actual: $${miSaldo.toLocaleString()}`);
+        alert(`✅ JUGADA REGISTRADA\n⚽ ${partido}\n🎯 ${gl}-${gv}\n💰 $${VALOR_JUGADA.toLocaleString()}`);
         return true;
-    } else {
-        alert("❌ Error al registrar la jugada. Intente nuevamente.");
-        return false;
     }
+    return false;
 }
 
-async function agregarSolicitud(monto, metodo, comprobante) {
-    let r = await callAPI("agregarSolicitud", { monto: monto, metodo: metodo, comprobante: comprobante, nombre: miNombre, whatsapp: miWhatsapp, cuenta: miCuenta });
-    if (r.success) alert("✅ Solicitud enviada. Espere aprobación.");
+async function agregarSolicitud(monto,metodo,comprobante){
+    let r=await callAPI("agregarSolicitud",{monto,metodo,comprobante,nombre:miNombre,whatsapp:miWhatsapp,cuenta:miCuenta});
+    if(r.success) alert("✅ Solicitud enviada. Espere aprobación.");
 }
 
-window.aprobarSolicitud = async function(id, monto, jid) {
-    if (!esAdmin) return;
-    
-    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
-    const solicitud = solicitudes.find(s => s.id === id);
-    if (solicitud) {
-        solicitud.estado = 'aprobada';
-        localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
-        
-        const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
-        let jugador = jugadores.find(j => j.id === jid);
-        if (jugador) {
-            jugador.saldo = (jugador.saldo || 0) + monto;
-            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
-        }
-        
-        alert(`✅ Recarga aprobada: $${monto.toLocaleString()}`);
-        await cargarDatosAdmin();
-        if (jid === jugadorId) await cargarDatosJugador();
-    }
+window.aprobarSolicitud=async function(id,monto,jid){
+    if(!esAdmin) return;
+    await callAPI("aprobarSolicitud",{solicitudId:id});
+    alert(`✅ Recarga aprobada: $${monto.toLocaleString()}`);
+    await cargarDatosAdmin();
+    if(jid===jugadorId) await cargarDatosJugador();
 };
 
-async function activarSaldoManual(jid, monto) {
-    if (!esAdmin) return;
-    await callAPI("actualizarSaldo", { id: jid, monto: monto, pozo: true });
+async function activarSaldoManual(jid,monto){
+    if(!esAdmin) return;
+    await callAPI("actualizarSaldo",{id:jid,monto,pozo:true});
     alert(`✅ Saldo activado: $${monto.toLocaleString()}`);
     await cargarDatosAdmin();
-    if (jid === jugadorId) await cargarDatosJugador();
+    if(jid===jugadorId) await cargarDatosJugador();
 }
 
-// ==================== UI ====================
-function cargarPartidosEnSelects() {
-    let sel = document.getElementById('partidoSelect'), liq = document.getElementById('liquidarPartidoSelect');
-    sel.innerHTML = '<option value="">-- Seleccione un partido --</option>';
-    if (liq) liq.innerHTML = '<option value="">-- Seleccione partido --</option>';
-    PARTIDOS.forEach(p => {
-        let f = formatearFecha(p.fecha);
-        sel.innerHTML += `<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
-        if (liq) liq.innerHTML += `<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
+function cargarPartidosEnSelects(){
+    let sel=document.getElementById('partidoSelect'), liq=document.getElementById('liquidarPartidoSelect');
+    sel.innerHTML='<option value="">-- Seleccione un partido --</option>';
+    if(liq) liq.innerHTML='<option value="">-- Seleccione partido --</option>';
+    PARTIDOS.forEach(p=>{
+        let f=formatearFecha(p.fecha);
+        sel.innerHTML+=`<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
+        if(liq) liq.innerHTML+=`<option value="${p.id}">${f} | ${p.fase} | ${p.local} vs ${p.visitante}</option>`;
     });
 }
 
-function cargarListaPartidos() {
-    let html = '';
-    PARTIDOS.forEach(p => {
-        let f = formatearFecha(p.fecha);
-        html += `<div class="partido-item"><div class="fecha-partido">📅 ${f} | ${p.fase}</div><strong>${p.local} vs ${p.visitante}</strong></div>`;
+function cargarListaPartidos(){
+    let html='';
+    PARTIDOS.forEach(p=>{
+        html+=`<div class="partido-item"><div class="fecha-partido">📅 ${formatearFecha(p.fecha)} | ${p.fase}</div><strong>${p.local} vs ${p.visitante}</strong></div>`;
     });
-    document.getElementById('listaPartidos').innerHTML = html;
+    document.getElementById('listaPartidos').innerHTML=html;
 }
 
 // ==================== EVENTOS ====================
-document.getElementById('btnJugar').onclick = async () => {
-    if (!miNombre) {
+document.getElementById('btnJugar').onclick=async()=>{
+    if(!miNombre){
         alert("⚠️ Primero regístrese con su nombre (botón 'Registrarse' arriba a la derecha)");
-        document.getElementById('modalRegistro').style.display = 'flex';
+        document.getElementById('modalRegistro').style.display='flex';
         return;
     }
-    let pid = document.getElementById('partidoSelect').value;
-    if (!pid) { alert("Seleccione un partido"); return; }
-    let p = PARTIDOS.find(p => p.id == parseInt(pid));
-    let gl = parseInt(document.getElementById('golesLocal').value) || 0;
-    let gv = parseInt(document.getElementById('golesVisitante').value) || 0;
-    await agregarJugada(`${p.local} vs ${p.visitante}`, gl, gv);
-    document.getElementById('golesLocal').value = 0;
-    document.getElementById('golesVisitante').value = 0;
+    let pid=document.getElementById('partidoSelect').value;
+    if(!pid){alert("Seleccione un partido");return;}
+    let p=PARTIDOS.find(p=>p.id==parseInt(pid));
+    let gl=parseInt(document.getElementById('golesLocal').value)||0;
+    let gv=parseInt(document.getElementById('golesVisitante').value)||0;
+    await agregarJugada(`${p.local} vs ${p.visitante}`,gl,gv);
+    document.getElementById('golesLocal').value=0;
+    document.getElementById('golesVisitante').value=0;
 };
 
-let modalRecarga = document.getElementById('modalRecarga');
-document.getElementById('btnRecarga').onclick = () => {
-    if (!miNombre) {
-        alert("⚠️ Primero regístrese con su nombre");
-        document.getElementById('modalRegistro').style.display = 'flex';
-        return;
-    }
-    modalRecarga.style.display = 'flex';
+let modalRecarga=document.getElementById('modalRecarga');
+document.getElementById('btnRecarga').onclick=()=>{
+    if(!miNombre){alert("⚠️ Primero regístrese con su nombre");document.getElementById('modalRegistro').style.display='flex';return;}
+    modalRecarga.style.display='flex';
 };
-document.querySelectorAll('.close-modal').forEach(btn => {
-    btn.onclick = () => {
-        modalRecarga.style.display = 'none';
-        document.getElementById('loginAdminModal').style.display = 'none';
-        document.getElementById('modalRegistro').style.display = 'none';
+document.querySelectorAll('.close-modal').forEach(btn=>{
+    btn.onclick=()=>{
+        modalRecarga.style.display='none';
+        document.getElementById('loginAdminModal').style.display='none';
+        document.getElementById('modalRegistro').style.display='none';
     };
 });
 
-document.getElementById('btnSolicitarRecarga').onclick = async () => {
-    let monto = parseInt(document.getElementById('montoRecarga').value);
-    let metodo = document.getElementById('metodoRecarga').value;
-    let comprobante = document.getElementById('comprobanteRecarga').value.trim();
-    if (isNaN(monto) || monto < 5000) { alert("Monto mínimo: $5,000"); return; }
-    if (!comprobante) { alert("Ingrese el comprobante"); return; }
-    if (!miNombre) { alert("Complete su nombre primero"); return; }
-    await agregarSolicitud(monto, metodo, comprobante);
-    modalRecarga.style.display = 'none';
-    document.getElementById('montoRecarga').value = '';
-    document.getElementById('comprobanteRecarga').value = '';
+document.getElementById('btnSolicitarRecarga').onclick=async()=>{
+    let monto=parseInt(document.getElementById('montoRecarga').value);
+    let metodo=document.getElementById('metodoRecarga').value;
+    let comprobante=document.getElementById('comprobanteRecarga').value.trim();
+    if(isNaN(monto)||monto<5000){alert("Monto mínimo: $5,000");return;}
+    if(!comprobante){alert("Ingrese el comprobante");return;}
+    await agregarSolicitud(monto,metodo,comprobante);
+    modalRecarga.style.display='none';
+    document.getElementById('montoRecarga').value='';
+    document.getElementById('comprobanteRecarga').value='';
 };
 
-document.getElementById('btnActivarSaldo').onclick = async () => {
-    if (!esAdmin) { alert("Sin permisos de administrador"); return; }
-    let jid = document.getElementById('adminJugadorSelect').value;
-    let monto = parseInt(document.getElementById('adminMontoActivar').value);
-    if (!jid) { alert("Seleccione un jugador"); return; }
-    if (isNaN(monto) || monto < 5000) { alert("Monto mínimo: $5,000"); return; }
-    if (confirm(`¿Verificó que el jugador consignó $${monto.toLocaleString()}?`)) {
-        await activarSaldoManual(jid, monto);
-        document.getElementById('adminMontoActivar').value = '';
+document.getElementById('btnActivarSaldo').onclick=async()=>{
+    if(!esAdmin){alert("Sin permisos de administrador");return;}
+    let jid=document.getElementById('adminJugadorSelect').value;
+    let monto=parseInt(document.getElementById('adminMontoActivar').value);
+    if(!jid){alert("Seleccione un jugador");return;}
+    if(isNaN(monto)||monto<5000){alert("Monto mínimo: $5,000");return;}
+    if(confirm(`¿Verificó que el jugador consignó $${monto.toLocaleString()}?`)){
+        await activarSaldoManual(jid,monto);
+        document.getElementById('adminMontoActivar').value='';
     }
 };
 
-document.getElementById('btnLiquidarPartido').onclick = async () => {
-    if (!esAdmin) { alert("Sin permisos de administrador"); return; }
-    let pid = document.getElementById('liquidarPartidoSelect').value;
-    if (!pid) { alert("Seleccione un partido"); return; }
-    let p = PARTIDOS.find(p => p.id == parseInt(pid));
-    
-    if (verificarPartidoLiquidado(p.id)) {
-        alert("❌ Este partido YA FUE LIQUIDADO. No puede liquidarlo nuevamente.");
-        return;
-    }
-    
-    let gl = parseInt(prompt(`Goles de ${p.local}:`, "2"));
-    let gv = parseInt(prompt(`Goles de ${p.visitante}:`, "1"));
-    if (isNaN(gl) || isNaN(gv)) return;
-    
-    if (confirm(`¿Liquidar ${p.local} vs ${p.visitante} ${gl} - ${gv}?`)) {
+document.getElementById('btnLiquidarPartido').onclick=async()=>{
+    if(!esAdmin){alert("Sin permisos de administrador");return;}
+    let pid=document.getElementById('liquidarPartidoSelect').value;
+    if(!pid){alert("Seleccione un partido");return;}
+    let p=PARTIDOS.find(p=>p.id==parseInt(pid));
+    if(verificarPartidoLiquidado(p.id)){alert("❌ Este partido YA FUE LIQUIDADO");return;}
+    let gl=parseInt(prompt(`Goles de ${p.local}:`,"2"));
+    let gv=parseInt(prompt(`Goles de ${p.visitante}:`,"1"));
+    if(isNaN(gl)||isNaN(gv))return;
+    if(confirm(`¿Liquidar ${p.local} vs ${p.visitante} ${gl}-${gv}?`)){
         marcarPartidoComoLiquidado(p.id);
-        
-        const jugadasPendientes = misJugadas.filter(j => 
-            j.partido === `${p.local} vs ${p.visitante}` && j.estado === 'pendiente'
-        );
-        
-        const ganadores = jugadasPendientes.filter(j => {
-            const [golLocal, golVisitante] = j.marcador.split(' - ').map(Number);
-            return golLocal === gl && golVisitante === gv;
-        });
-        
-        if (ganadores.length === 0) {
-            alert(`❌ NADIE ACERTÓ. El pozo de $${pozoTotal.toLocaleString()} se acumula para la próxima.`);
-        } else {
-            const pozoPartido = pozoTotal * 0.9;
-            const gananciaPorJugador = Math.floor(pozoPartido / ganadores.length);
-            alert(`🎉 ${ganadores.length} GANADOR(ES)\n💰 Cada uno recibe: $${gananciaPorJugador.toLocaleString()}`);
-            
-            for (const jugada of misJugadas) {
-                if (jugada.partido === `${p.local} vs ${p.visitante}` && jugada.estado === 'pendiente') {
-                    const esGanador = ganadores.some(g => g.id === jugada.id);
-                    jugada.estado = esGanador ? 'ganada' : 'perdida';
-                    if (esGanador) {
-                        jugada.ganancia = gananciaPorJugador;
-                        if (jugada.nombreJugador === miNombre) {
-                            miSaldo += gananciaPorJugador;
-                        }
-                    }
-                }
-            }
-            
-            localStorage.setItem(`jugadas_${jugadorId}`, JSON.stringify(misJugadas));
-            localStorage.setItem(`saldo_${jugadorId}`, miSaldo);
-        }
-        
         await cargarDatosJugador();
         cargarPartidosEnSelects();
         cargarListaPartidos();
-        
-        if (document.getElementById('partidoSelect').value == pid) {
-            actualizarBanderasPartido();
-        }
-        
-        alert(`✅ Partido liquidado: ${p.local} ${gl} - ${gv} ${p.visitante}`);
+        if(document.getElementById('partidoSelect').value==pid) actualizarBanderasPartido();
+        alert(`✅ Partido liquidado: ${gl}-${gv}`);
     }
 };
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.onclick = () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.onclick=()=>{
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-        if (btn.dataset.tab === 'partidos') cargarListaPartidos();
-        if (btn.dataset.tab === 'admin' && esAdmin) cargarDatosAdmin();
+        if(btn.dataset.tab==='partidos') cargarListaPartidos();
+        if(btn.dataset.tab==='admin' && esAdmin) cargarDatosAdmin();
     };
 });
 
@@ -1000,3 +887,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 cargarPartidosEnSelects();
 cargarListaPartidos();
 cargarDatosJugador();
+</script>
+</body>
+</html>
