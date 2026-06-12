@@ -331,7 +331,7 @@
 
 <script>
 // ==================== CONFIGURACIÓN ====================
-const API_URL = "https://script.google.com/macros/s/AKfycbx8oLPfbQgza30WYPpN9cgJPmjbkMjDQdCu73BM7_YbWqN4TZiBM8PBsjVsXdslwqGqPg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwb59Z0C3dwIK3811ZmhIvnRHvM_9QnYELRVDb4HMhUN9aQuwklvtpqOTQyj8_cOtgVkg/exec";
 const ADMIN_PASSWORD = "colombia2026";
 const SITIO_URL = "https://tinyurl.com/2ujusm83";
 const VALOR_JUGADA = 5000;
@@ -626,18 +626,147 @@ document.getElementById('btnCobrarWhatsapp').onclick = () => {
 };
 
 // ==================== API ====================
+// ==================== API LOCAL (NO necesita CORS) ====================
 async function callAPI(action, params = {}) {
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: action, params: { ...params, jugadorId: jugadorId, nombre: miNombre, whatsapp: miWhatsapp, cuenta: miCuenta } })
-        });
-        return await response.json();
-    } catch (e) {
-        console.error("Error API:", e);
-        return { success: false };
+    console.log("API llamada:", action, params);
+    
+    // Datos locales
+    let solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    let jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let jugadas = JSON.parse(localStorage.getItem(`jugadas_${jugadorId}`) || '[]');
+    
+    // Obtener o registrar jugador
+    if (action === "obtenerJugador") {
+        let jugador = jugadores.find(j => j.id === params.id);
+        if (!jugador && params.nombre) {
+            jugador = { 
+                id: params.id, 
+                nombre: params.nombre, 
+                whatsapp: params.whatsapp, 
+                cuenta: params.cuenta, 
+                saldo: 0 
+            };
+            jugadores.push(jugador);
+            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+        }
+        return { 
+            success: true, 
+            saldo: jugador?.saldo || 0, 
+            nombre: jugador?.nombre || '', 
+            whatsapp: jugador?.whatsapp || '', 
+            cuenta: jugador?.cuenta || '' 
+        };
     }
+    
+    // Actualizar saldo
+    if (action === "actualizarSaldo") {
+        let jugador = jugadores.find(j => j.id === params.id);
+        if (jugador) {
+            jugador.saldo = params.monto;
+            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+        }
+        return { success: true };
+    }
+    
+    // Agregar jugada
+    if (action === "agregarJugada") {
+        let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${params.jugadorId}`) || '[]');
+        jugadasUser.push({
+            id: Date.now(),
+            partido: params.partido,
+            marcador: params.marcador,
+            monto: params.monto,
+            estado: 'pendiente',
+            fecha: new Date().toISOString()
+        });
+        localStorage.setItem(`jugadas_${params.jugadorId}`, JSON.stringify(jugadasUser));
+        return { success: true };
+    }
+    
+    // Obtener jugadas
+    if (action === "obtenerJugadas") {
+        let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${params.id}`) || '[]');
+        return { success: true, jugadas: jugadasUser };
+    }
+    
+    // Agregar solicitud de recarga
+    if (action === "agregarSolicitud") {
+        solicitudes.push({
+            id: Date.now(),
+            jugadorId: params.jugadorId,
+            nombre: params.nombre,
+            monto: params.monto,
+            metodo: params.metodo,
+            comprobante: params.comprobante,
+            estado: 'pendiente',
+            fecha: new Date().toISOString()
+        });
+        localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+        alert("✅ Solicitud enviada. Espere aprobación.");
+        return { success: true };
+    }
+    
+    // Obtener solicitudes
+    if (action === "obtenerSolicitudes") {
+        return { success: true, solicitudes: solicitudes.filter(s => s.estado === 'pendiente') };
+    }
+    
+    // Aprobar solicitud
+    if (action === "aprobarSolicitud") {
+        const solicitud = solicitudes.find(s => s.id === params.solicitudId);
+        if (solicitud) {
+            solicitud.estado = 'aprobada';
+            let jugador = jugadores.find(j => j.id === solicitud.jugadorId);
+            if (jugador) {
+                jugador.saldo = (jugador.saldo || 0) + solicitud.monto;
+                localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+            }
+            localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+        }
+        return { success: true };
+    }
+    
+    // Obtener ranking
+    if (action === "obtenerRanking") {
+        const rankingList = jugadores.map(j => ({ 
+            id: j.id, 
+            nombre: j.nombre, 
+            saldo: j.saldo || 0, 
+            whatsapp: j.whatsapp || '' 
+        }));
+        rankingList.sort((a, b) => b.saldo - a.saldo);
+        return { success: true, ranking: rankingList };
+    }
+    
+    // Actualizar nombre
+    if (action === "actualizarNombre") {
+        let jugador = jugadores.find(j => j.id === params.jugadorId);
+        if (jugador) {
+            jugador.nombre = params.nombre;
+            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+        }
+        return { success: true };
+    }
+    
+    // Liquidar partido
+    if (action === "liquidarPartido") {
+        let jugadasUser = JSON.parse(localStorage.getItem(`jugadas_${jugadorId}`) || '[]');
+        for (let jugada of jugadasUser) {
+            if (jugada.estado === 'pendiente' && jugada.partido.includes(params.local)) {
+                const [golLocal, golVisitante] = jugada.marcador.split(' - ').map(Number);
+                if (golLocal === params.golesLocal && golVisitante === params.golesVisitante) {
+                    jugada.estado = 'ganada';
+                    jugada.ganancia = 50000;
+                } else {
+                    jugada.estado = 'perdida';
+                }
+            }
+        }
+        localStorage.setItem(`jugadas_${jugadorId}`, JSON.stringify(jugadasUser));
+        return { success: true };
+    }
+    
+    return { success: false, error: "Acción no reconocida" };
 }
 
 // ==================== ADMIN ====================
@@ -699,73 +828,43 @@ async function cargarDatosJugador() {
 async function cargarDatosAdmin() {
     if (!esAdmin) return;
     
-    // 1. Cargar solicitudes de recarga desde la API
-    let sr = await callAPI("obtenerSolicitudes");
-    if (sr.success) {
-        let sol = sr.solicitudes || [], html = '';
-        if (sol.length) {
-            sol.forEach(s => {
-                html += `<div class="solicitud-item">
-                            <strong>${s.nombre || s.jugadorId}</strong><br>
-                            💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>
-                            📄 ${s.comprobante}<br>
-                            <button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}',${s.monto},'${s.jugadorId}')">✅ APROBAR</button>
-                         </div>`;
-            });
-        } else {
-            html = "✅ No hay solicitudes pendientes";
-        }
-        document.getElementById('solicitudesPendientes').innerHTML = html;
-    }
+    // Cargar solicitudes desde localStorage
+    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    const pendientes = solicitudes.filter(s => s.estado === 'pendiente');
     
-    // 2. Cargar jugadores registrados (de localStorage y API)
-    let jugadoresMap = new Map();
-    
-    // 2a. Obtener jugadores desde la API (ranking)
-    let kr = await callAPI("obtenerRanking");
-    if (kr.success && kr.ranking) {
-        kr.ranking.forEach(j => {
-            jugadoresMap.set(j.id, {
-                id: j.id,
-                nombre: j.nombre || "Anónimo",
-                whatsapp: j.whatsapp || "No",
-                saldo: j.saldo || 0
-            });
-        });
-    }
-    
-    // 2b. También buscar jugadores en localStorage (para pruebas)
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('nombre_')) {
-            const id = key.replace('nombre_', '');
-            const nombre = localStorage.getItem(`nombre_${id}`);
-            const whatsapp = localStorage.getItem(`whatsapp_${id}`) || "No";
-            const saldo = parseInt(localStorage.getItem(`saldo_${id}`)) || 0;
-            
-            if (!jugadoresMap.has(id)) {
-                jugadoresMap.set(id, { id, nombre, whatsapp, saldo });
-            }
-        }
-    }
-    
-    // Mostrar lista de jugadores
     let html = '';
-    for (let jugador of jugadoresMap.values()) {
-        html += `<div class="jugador-item">
-                    <strong>${jugador.nombre}</strong><br>
-                    📱 WhatsApp: ${jugador.whatsapp}<br>
-                    🏆 Saldo: $${(jugador.saldo || 0).toLocaleString()}
-                </div>`;
+    if (pendientes.length) {
+        pendientes.forEach(s => {
+            html += `<div class="solicitud-item">
+                        <strong>${s.nombre || s.jugadorId}</strong><br>
+                        💰 $${parseInt(s.monto).toLocaleString()} | ${s.metodo}<br>
+                        📄 ${s.comprobante}<br>
+                        <button class="btn-aprobar" onclick="aprobarSolicitud('${s.id}',${s.monto},'${s.jugadorId}')">✅ APROBAR</button>
+                    </div>`;
+        });
+    } else {
+        html = "✅ No hay solicitudes pendientes";
     }
-    document.getElementById('listaJugadores').innerHTML = html || "No hay jugadores registrados";
+    document.getElementById('solicitudesPendientes').innerHTML = html;
     
-    // Llenar select para activar saldo manual
+    // Cargar jugadores
+    const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+    let jugadoresHtml = '';
+    jugadores.forEach(j => {
+        jugadoresHtml += `<div class="jugador-item">
+                            <strong>${j.nombre}</strong><br>
+                            📱 WhatsApp: ${j.whatsapp || 'No'}<br>
+                            🏆 Saldo: $${(j.saldo || 0).toLocaleString()}
+                        </div>`;
+    });
+    document.getElementById('listaJugadores').innerHTML = jugadoresHtml || "No hay jugadores registrados";
+    
+    // Llenar select
     let sel = document.getElementById('adminJugadorSelect');
     sel.innerHTML = '<option value="">-- Seleccione jugador --</option>';
-    for (let jugador of jugadoresMap.values()) {
-        sel.innerHTML += `<option value="${jugador.id}">${jugador.nombre}</option>`;
-    }
+    jugadores.forEach(j => {
+        sel.innerHTML += `<option value="${j.id}">${j.nombre}</option>`;
+    });
 }
 
 // ==================== ACCIONES ====================
@@ -843,10 +942,24 @@ async function agregarSolicitud(monto, metodo, comprobante) {
 
 window.aprobarSolicitud = async function(id, monto, jid) {
     if (!esAdmin) return;
-    await callAPI("aprobarSolicitud", { solicitudId: id });
-    alert(`✅ Recarga aprobada: $${monto.toLocaleString()}`);
-    await cargarDatosAdmin();
-    if (jid === jugadorId) await cargarDatosJugador();
+    
+    const solicitudes = JSON.parse(localStorage.getItem('solicitudes_app') || '[]');
+    const solicitud = solicitudes.find(s => s.id === id);
+    if (solicitud) {
+        solicitud.estado = 'aprobada';
+        localStorage.setItem('solicitudes_app', JSON.stringify(solicitudes));
+        
+        const jugadores = JSON.parse(localStorage.getItem('jugadores_app') || '[]');
+        let jugador = jugadores.find(j => j.id === jid);
+        if (jugador) {
+            jugador.saldo = (jugador.saldo || 0) + monto;
+            localStorage.setItem('jugadores_app', JSON.stringify(jugadores));
+        }
+        
+        alert(`✅ Recarga aprobada: $${monto.toLocaleString()}`);
+        await cargarDatosAdmin();
+        if (jid === jugadorId) await cargarDatosJugador();
+    }
 };
 
 async function activarSaldoManual(jid, monto) {
